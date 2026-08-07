@@ -141,10 +141,10 @@ export class SlotEngine {
 
   getRandomMultiplierValue() {
     const rand = Math.random();
-    if (rand < 0.75) return [2, 3, 4, 5][Math.floor(Math.random() * 4)];
-    if (rand < 0.95) return [8, 10, 12, 15][Math.floor(Math.random() * 4)];
-    if (rand < 0.99) return [20, 25, 50][Math.floor(Math.random() * 3)];
-    return [100, 250, 500][Math.floor(Math.random() * 3)]; // 1% rare 100x+
+    if (rand < 0.82) return [2, 3, 4, 5][Math.floor(Math.random() * 4)];
+    if (rand < 0.96) return [8, 10, 12, 15][Math.floor(Math.random() * 4)];
+    if (rand < 0.998) return [20, 25, 35][Math.floor(Math.random() * 3)];
+    return [50, 100][Math.floor(Math.random() * 2)]; // 0.2% ultra rare
   }
 
   generateSpinGrid(isBuyFeature = false) {

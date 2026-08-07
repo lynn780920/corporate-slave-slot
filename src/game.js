@@ -338,6 +338,84 @@ class GameApp {
     requestAnimationFrame((t) => this.renderLoop(t));
   }
 
+  drawGatesOfSetMascots(ctx, w, h) {
+    const time = this.globalTime;
+
+    // 1. Left Mascot: 👑 董事長貓皇 (Chairman Cat Emperor)
+    const catX = 40;
+    const catY = 38;
+    const catPulse = 1 + Math.sin(time * 4) * 0.08;
+
+    ctx.save();
+    ctx.translate(catX, catY);
+
+    // Glowing Aura Ring
+    ctx.save();
+    ctx.scale(catPulse, catPulse);
+    ctx.fillStyle = 'rgba(245, 158, 11, 0.28)';
+    ctx.shadowColor = '#f59e0b';
+    ctx.shadowBlur = 22;
+    ctx.beginPath();
+    ctx.arc(0, 0, 30, 0, Math.PI * 2);
+    ctx.fill();
+
+    const catImg = this.loadedImages['chairman_cat'];
+    if (catImg) {
+      ctx.drawImage(catImg, -26, -26, 52, 52);
+    }
+    ctx.strokeStyle = '#fde047';
+    ctx.lineWidth = 2.5;
+    ctx.strokeRect(-26, -26, 52, 52);
+    ctx.restore();
+
+    // Badge Title Label
+    ctx.font = '900 11px Outfit, Cinzel, sans-serif';
+    ctx.fillStyle = '#fde047';
+    ctx.textAlign = 'center';
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = 4;
+    ctx.strokeText('👑貓皇', 0, 36);
+    ctx.fillText('👑貓皇', 0, 36);
+    ctx.restore();
+
+    // 2. Right Mascot: 👔 總經理哈士奇 (GM Husky)
+    const huskyX = w - 40;
+    const huskyY = 38;
+    const huskyPulse = 1 + Math.cos(time * 4) * 0.08;
+
+    ctx.save();
+    ctx.translate(huskyX, huskyY);
+
+    // Glowing Aura Ring
+    ctx.save();
+    ctx.scale(huskyPulse, huskyPulse);
+    ctx.fillStyle = 'rgba(56, 189, 248, 0.28)';
+    ctx.shadowColor = '#38bdf8';
+    ctx.shadowBlur = 22;
+    ctx.beginPath();
+    ctx.arc(0, 0, 30, 0, Math.PI * 2);
+    ctx.fill();
+
+    const huskyImg = this.loadedImages['gm_husky'];
+    if (huskyImg) {
+      ctx.drawImage(huskyImg, -26, -26, 52, 52);
+    }
+    ctx.strokeStyle = '#38bdf8';
+    ctx.lineWidth = 2.5;
+    ctx.strokeRect(-26, -26, 52, 52);
+    ctx.restore();
+
+    // Badge Title Label
+    ctx.font = '900 11px Outfit, Cinzel, sans-serif';
+    ctx.fillStyle = '#38bdf8';
+    ctx.textAlign = 'center';
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = 4;
+    ctx.strokeText('👔哈士奇', 0, 36);
+    ctx.fillText('👔哈士奇', 0, 36);
+    ctx.restore();
+  }
+
   drawMainScene() {
     const ctx = this.ctx;
     const w = this.gridWidth;
@@ -378,6 +456,8 @@ class GameApp {
     ctx.shadowBlur = 15;
     ctx.strokeRect(3, 3, w - 6, h - 6);
     ctx.shadowBlur = 0;
+
+    this.drawGatesOfSetMascots(ctx, w, h);
 
     // 6x5 Grid Cells & Render PNG Symbols Cropped from User Screenshot
     for (let c = 0; c < this.cols; c++) {
@@ -1018,11 +1098,16 @@ class GameApp {
     const multiplierOrbs = this.engine.getMultiplierOrbs();
     if (hasAnyWinThisSpin && multiplierOrbs.length > 0) {
       soundManager.playOrbSwoop();
-      multiplierOrbs.forEach(orb => {
+      multiplierOrbs.forEach((orb, idx) => {
         spinMultiplierSum += orb.val;
         const x = orb.col * (this.cellSize + this.cellGap) + this.cellGap + this.cellSize / 2;
         const y = orb.row * (this.cellSize + this.cellGap) + this.cellGap + this.cellSize / 2;
-        this.spawnMultiplierLaserBeam(x, y, this.gridWidth / 2, -30, orb.val);
+        
+        // Gates of Set Animation: Side God mascot shoots electric beam directly to orb!
+        const mascotX = idx % 2 === 0 ? 40 : (this.gridWidth - 40);
+        const mascotY = 38;
+        this.spawnMultiplierLaserBeam(mascotX, mascotY, x, y, orb.val);
+        this.spawnShockwave(x, y);
       });
 
       await new Promise(res => setTimeout(res, 550));
@@ -1060,7 +1145,7 @@ class GameApp {
       this.engine.totalFreeSpinsWin += finalSpinPayout;
     }
 
-    if (finalSpinPayout >= this.engine.getBet() * 20) {
+    if (finalSpinPayout >= this.engine.getBet() * 40) {
       soundManager.playBigWin();
       await this.triggerFullscreenBigWin(finalSpinPayout);
     }
