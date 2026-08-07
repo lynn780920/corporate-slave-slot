@@ -513,42 +513,7 @@ class GameApp {
     ctx.fillText('👑貓皇', 0, 36);
     ctx.restore();
 
-    // 2. Right Mascot: 👔 總經理哈士奇 (GM Husky)
-    const huskyX = w - 40;
-    const huskyY = 38;
-    const huskyPulse = 1 + Math.cos(time * 4) * 0.08;
 
-    ctx.save();
-    ctx.translate(huskyX, huskyY);
-
-    // Glowing Aura Ring
-    ctx.save();
-    ctx.scale(huskyPulse, huskyPulse);
-    ctx.fillStyle = 'rgba(56, 189, 248, 0.28)';
-    ctx.shadowColor = '#38bdf8';
-    ctx.shadowBlur = 22;
-    ctx.beginPath();
-    ctx.arc(0, 0, 30, 0, Math.PI * 2);
-    ctx.fill();
-
-    const huskyImg = this.loadedImages['gm_husky'];
-    if (huskyImg) {
-      ctx.drawImage(huskyImg, -26, -26, 52, 52);
-    }
-    ctx.strokeStyle = '#38bdf8';
-    ctx.lineWidth = 2.5;
-    ctx.strokeRect(-26, -26, 52, 52);
-    ctx.restore();
-
-    // Badge Title Label
-    ctx.font = '900 11px Outfit, Cinzel, sans-serif';
-    ctx.fillStyle = '#38bdf8';
-    ctx.textAlign = 'center';
-    ctx.strokeStyle = '#000000';
-    ctx.lineWidth = 4;
-    ctx.strokeText('👔哈士奇', 0, 36);
-    ctx.fillText('👔哈士奇', 0, 36);
-    ctx.restore();
   }
 
   drawMainScene() {
@@ -631,7 +596,6 @@ class GameApp {
 
           let imgKey = sym.type;
           if (sym.type === SYMBOLS.GOD_MALE) imgKey = 'chairman_cat';
-          else if (sym.type === SYMBOLS.GOD_FEMALE) imgKey = 'gm_husky';
           
           const img = this.loadedImages[imgKey] || this.loadedImages[sym.type];
           if (img) {
