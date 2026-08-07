@@ -63,6 +63,7 @@ class GameApp {
     // 🥫 貓草罐頭主動技能狀態
     this.catTreatEnergy = 100;
     this.isTargetingTreat = false;
+    this.lastSpinWin = 0;
 
     if (this.canvas) {
       this.canvas.addEventListener('click', (e) => this.onCanvasClicked(e));
@@ -534,6 +535,14 @@ class GameApp {
       card1.onclick = handleFlipCard;
       card2.onclick = handleFlipCard;
     });
+  }
+
+  openGambleModalManually() {
+    const btn = document.getElementById('btn-gamble');
+    if (btn) btn.classList.add('hidden');
+    if (this.lastSpinWin > 0) {
+      this.triggerGambleModal(this.lastSpinWin);
+    }
   }
 
   spawnExplosion(x, y, color = '#fde047', count = 40) {
@@ -1191,6 +1200,9 @@ class GameApp {
   async onSpinClicked(isAutoCall = false) {
     if (this.isSpinning) return;
 
+    const btnGamble = document.getElementById('btn-gamble');
+    if (btnGamble) btnGamble.classList.add('hidden');
+
     if (!isAutoCall && this.engine.autoSpinCount > 0 && this.isUserInitiatedSpin) {
       this.engine.autoSpinCount = 0;
       this.uiManager.updateDisplay();
@@ -1297,8 +1309,8 @@ class GameApp {
   }
 
   animateStaggeredDrop() {
-    const colStaggerMs = this.engine.turbo ? 20 : 45;
-    const colDurationMs = this.engine.turbo ? 140 : 320;
+    const colStaggerMs = this.engine.turbo ? 15 : 30;
+    const colDurationMs = this.engine.turbo ? 90 : 200;
     const totalDuration = this.cols * colStaggerMs + colDurationMs;
     const startTime = performance.now();
 
@@ -1345,7 +1357,7 @@ class GameApp {
   }
 
   animateWinningHighlight(winPositions) {
-    const durationMs = this.engine.turbo ? 150 : 350;
+    const durationMs = this.engine.turbo ? 100 : 220;
     const startTime = performance.now();
 
     return new Promise((resolve) => {
@@ -1503,8 +1515,12 @@ class GameApp {
       await this.triggerFullscreenBigWin(finalSpinPayout);
     }
 
-    if (finalSpinPayout > 0 && !this.engine.isFreeSpins) {
-      await this.triggerGambleModal(finalSpinPayout);
+    if (finalSpinPayout > 0) {
+      this.lastSpinWin = finalSpinPayout;
+      const btnGamble = document.getElementById('btn-gamble');
+      if (btnGamble && !this.engine.isFreeSpins && this.engine.autoSpinCount === 0) {
+        btnGamble.classList.remove('hidden');
+      }
     }
 
     const scattersRes = this.engine.countScatters();
