@@ -1188,8 +1188,14 @@ class GameApp {
     ctx.closePath();
   }
 
-  async onSpinClicked() {
+  async onSpinClicked(isAutoCall = false) {
     if (this.isSpinning) return;
+
+    if (!isAutoCall && this.engine.autoSpinCount > 0 && this.isUserInitiatedSpin) {
+      this.engine.autoSpinCount = 0;
+      this.uiManager.updateDisplay();
+      return;
+    }
 
     try {
       const bet = this.engine.getBet();
@@ -1234,7 +1240,7 @@ class GameApp {
     }
 
     if (this.engine.isFreeSpins && this.engine.freeSpinsRemaining > 0) {
-      setTimeout(() => this.onSpinClicked(), this.engine.turbo ? 150 : 500);
+      setTimeout(() => this.onSpinClicked(true), this.engine.turbo ? 150 : 500);
     } else if (this.engine.isFreeSpins && this.engine.freeSpinsRemaining <= 0) {
       this.engine.isFreeSpins = false;
       if (this.engine.totalFreeSpinsWin > 0) {
@@ -1245,7 +1251,7 @@ class GameApp {
       this.engine.autoSpinCount--;
       this.uiManager.updateAutoSpinDisplay();
       if (this.engine.autoSpinCount > 0) {
-        setTimeout(() => this.onSpinClicked(), this.engine.turbo ? 150 : 500);
+        setTimeout(() => this.onSpinClicked(true), this.engine.turbo ? 150 : 500);
       }
     }
   }
