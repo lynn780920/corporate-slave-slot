@@ -290,6 +290,24 @@ export class UIManager {
     }
   }
 
+  triggerAwakeningBanner(title, subtitle, avatarPath) {
+    const elBanner = document.getElementById('awakening-skill-banner');
+    const elTitle = document.getElementById('awk-title');
+    const elSubtitle = document.getElementById('awk-subtitle');
+    const elAvatar = document.getElementById('awk-avatar');
+
+    if (elBanner && elTitle && elSubtitle && elAvatar) {
+      elTitle.textContent = title;
+      elSubtitle.textContent = subtitle;
+      elAvatar.src = avatarPath;
+
+      elBanner.classList.remove('hidden');
+      setTimeout(() => {
+        elBanner.classList.add('hidden');
+      }, 2200);
+    }
+  }
+
   showBigWinModal(winAmount, tier = 1) {
     let title = 'BIG WIN! 💰 金幣滿屋';
     if (tier === 3) {

@@ -926,6 +926,12 @@ class GameApp {
           }
 
           this.spawnFloatingText(x, y - 30, `👑 董事長貓皇：力量覺醒！倍數 2 倍翻倍！`, '#fde047');
+          this.triggerShake(25, 35);
+          this.uiManager.triggerAwakeningBanner(
+            '👑 董事長貓皇：力量覺醒！',
+            '⚡ 盤面所有倍數球 2 倍翻倍！',
+            './assets/chairman_cat.png'
+          );
           soundManager.playBigWin();
         } else if (group.type === SYMBOLS.GOD_FEMALE) {
           const firstPos = group.positions[0];
@@ -937,6 +943,12 @@ class GameApp {
           this.engine.lockedMultiplierVal = baseLock;
 
           this.spawnFloatingText(x, y - 30, `👔 總經理哈士奇：鎖定覺醒！鎖定 ${baseLock}x 保留 3 局！`, '#38bdf8');
+          this.triggerShake(25, 35);
+          this.uiManager.triggerAwakeningBanner(
+            '👔 總經理哈士奇：鎖定覺醒！',
+            `🔒 強制鎖定 ${baseLock}x 倍數保留 3 局不歸零！`,
+            './assets/gm_husky.png'
+          );
           soundManager.playBigWin();
         }
 
