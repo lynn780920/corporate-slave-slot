@@ -107,7 +107,19 @@ export class UIManager {
     if (this.elAutoBtn) {
       this.elAutoBtn.addEventListener('click', (e) => {
         e.preventDefault();
+        
+        // If Auto Spin is active, clicking it CANCELS / STOPS auto spin immediately!
+        if (this.engine.autoSpinCount > 0) {
+          this.engine.autoSpinCount = 0;
+          this.autoIdx = 0;
+          this.updateAutoSpinDisplay();
+          soundManager.playReelStop();
+          return;
+        }
+
+        // Cycle through auto spin count options: 10, 20, 50, 100
         this.autoIdx = (this.autoIdx + 1) % this.autoOptions.length;
+        if (this.autoIdx === 0) this.autoIdx = 1; // Default to 10
         this.engine.autoSpinCount = this.autoOptions[this.autoIdx];
         this.updateAutoSpinDisplay();
         soundManager.playReelStop();
@@ -209,8 +221,8 @@ export class UIManager {
   updateAutoSpinDisplay() {
     if (this.elAutoCount) {
       if (this.engine.autoSpinCount > 0) {
-        this.elAutoCount.textContent = `${this.engine.autoSpinCount}`;
-        this.elAutoCount.className = 'text-amber-400 font-extrabold';
+        this.elAutoCount.textContent = `停止 (${this.engine.autoSpinCount})`;
+        this.elAutoCount.className = 'text-red-400 font-extrabold animate-pulse';
       } else {
         this.elAutoCount.textContent = 'OFF';
         this.elAutoCount.className = 'text-slate-500';
