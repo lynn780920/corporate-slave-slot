@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 """
-Gates of Set 2 (戰神賽特2 覺醒之力) - AAA Commercial Asset Generator
-Generates ultra-high-definition 3D gold & gemstone assets for casino slot visuals.
+社畜變賭徒 (Corporate Slave to Gambler) - Humorous Corporate Asset Generator
+Generates HD 300x300 3D assets:
+- Coffee Mug, Alarm Clock, ID Badge, Energy Drink Can, Office Chair, Cup Noodles, Stapler, RGB Keyboard, Water Bottle
+- SCATTER Overtime Laptop, Devil Boss Awakening, Strict HR Awakening
+- Multiplier Orbs (Green, Blue, Purple, Flaming Gold Fire)
 """
 
 import os
@@ -11,177 +14,171 @@ import math
 ASSETS_DIR = os.path.join(os.path.dirname(__file__), "public", "assets")
 os.makedirs(ASSETS_DIR, exist_ok=True)
 
-def generate_aaa_assets():
+def generate_corporate_assets():
   try:
-    from PIL import Image, ImageDraw, ImageFilter, ImageEnhance
+    from PIL import Image, ImageDraw, ImageFont, ImageFilter
   except ImportError:
     print("[PIL] Installing Pillow...")
     import subprocess
     subprocess.check_call([sys.executable, "-m", "pip", "install", "Pillow"])
-    from PIL import Image, ImageDraw, ImageFilter, ImageEnhance
+    from PIL import Image, ImageDraw, ImageFont, ImageFilter
 
   def create_base(size=300):
     return Image.new("RGBA", (size, size), (0, 0, 0, 0))
 
   def add_gold_rim(draw, size=300):
-    # 3D Gold Rim
     draw.ellipse([8, 8, size-8, size-8], outline=(180, 83, 9, 255), width=10)
     draw.ellipse([14, 14, size-14, size-14], outline=(254, 240, 138, 255), width=6)
-    draw.ellipse([20, 20, size-20, size-20], outline=(245, 158, 11, 255), width=4)
 
-  # 1. 荷魯斯之眼 (Eye of Horus - AAA Gold & Lapis)
+  # 1. 續命咖啡 (Coffee Mug) - Replacing eye
   img = create_base()
   draw = ImageDraw.Draw(img)
   add_gold_rim(draw)
-  draw.ellipse([30, 30, 270, 270], fill=(15, 23, 42, 230))
-  # Eye Outer Wing
-  draw.ellipse([50, 90, 250, 210], fill=(2, 132, 199, 255), outline=(253, 224, 71, 255), width=8)
-  # Inner Lapis Body
-  draw.ellipse([70, 110, 230, 190], fill=(30, 58, 138, 255))
-  # Golden Pupil with Ruby Center
-  draw.ellipse([120, 125, 180, 175], fill=(253, 224, 71, 255), outline=(220, 38, 38, 255), width=5)
-  draw.ellipse([138, 143, 162, 157], fill=(220, 38, 38, 255))
+  draw.ellipse([30, 30, 270, 270], fill=(20, 15, 30, 230))
+  # Coffee Cup Body
+  draw.rectangle([90, 80, 210, 220], fill=(245, 158, 11, 255), outline=(254, 240, 138, 255), width=5)
+  # Cup Handle
+  draw.arc([180, 100, 250, 180], start=270, end=90, fill=(245, 158, 11, 255), width=12)
+  # Steam Waves
+  draw.arc([110, 40, 140, 75], start=0, end=180, fill=(255, 255, 255, 200), width=4)
+  draw.arc([160, 40, 190, 75], start=0, end=180, fill=(255, 255, 255, 200), width=4)
+  draw.text((150, 150), "續命咖啡", fill=(120, 53, 15, 255), anchor="mm")
   img.save(os.path.join(ASSETS_DIR, "eye.png"))
 
-  # 2. 權杖 (Cobra Scepter)
+  # 2. 毀滅鬧鐘 (Alarm Clock) - Replacing scepter
   img = create_base()
   draw = ImageDraw.Draw(img)
   add_gold_rim(draw)
   draw.ellipse([30, 30, 270, 270], fill=(20, 15, 30, 230))
-  # Cobra Hood Arc
-  draw.arc([60, 50, 240, 210], start=180, end=360, fill=(245, 158, 11, 255), width=20)
-  draw.arc([75, 65, 225, 195], start=180, end=360, fill=(253, 224, 71, 255), width=8)
-  # Scepter Pole
-  draw.rectangle([140, 140, 160, 270], fill=(217, 119, 6, 255), outline=(254, 240, 138, 255), width=3)
-  # Ruby Crown Orb
-  draw.ellipse([125, 50, 175, 100], fill=(220, 38, 38, 255), outline=(253, 224, 71, 255), width=5)
+  # Alarm Clock Body
+  draw.ellipse([70, 70, 230, 230], fill=(220, 38, 38, 255), outline=(254, 240, 138, 255), width=6)
+  # Clock Bells
+  draw.ellipse([50, 40, 100, 90], fill=(245, 158, 11, 255))
+  draw.ellipse([200, 40, 250, 90], fill=(245, 158, 11, 255))
+  # Clock Hands (08:00 AM Overtime)
+  draw.line([150, 150, 150, 100], fill=(255, 255, 255, 255), width=6)
+  draw.line([150, 150, 190, 150], fill=(255, 255, 255, 255), width=6)
+  draw.text((150, 185), "08:00", fill=(254, 240, 138, 255), anchor="mm")
   img.save(os.path.join(ASSETS_DIR, "scepter.png"))
 
-  # 3. 弓箭 (Golden Bow & Arrow)
+  # 3. 社畜識別證 (ID Badge) - Replacing bow
   img = create_base()
   draw = ImageDraw.Draw(img)
   add_gold_rim(draw)
   draw.ellipse([30, 30, 270, 270], fill=(20, 15, 30, 230))
-  # Golden Bow
-  draw.arc([45, 45, 255, 255], start=45, end=225, fill=(245, 158, 11, 255), width=18)
-  draw.arc([55, 55, 245, 245], start=45, end=225, fill=(253, 224, 71, 255), width=6)
-  # Golden Arrow with Ruby Head
-  draw.line([60, 240, 240, 60], fill=(253, 224, 71, 255), width=10)
-  draw.polygon([(240, 60), (205, 60), (240, 95)], fill=(220, 38, 38, 255), outline=(254, 240, 138, 255))
+  # Lanyard Ribbon
+  draw.line([150, 30, 150, 80], fill=(59, 130, 246, 255), width=10)
+  # ID Card Frame
+  draw.rectangle([80, 80, 220, 240], fill=(241, 245, 249, 255), outline=(245, 158, 11, 255), width=6)
+  # Card Photo Head
+  draw.ellipse([120, 100, 180, 160], fill=(59, 130, 246, 255))
+  draw.text((150, 200), "社畜證", fill=(15, 23, 42, 255), anchor="mm")
   img.save(os.path.join(ASSETS_DIR, "bow.png"))
 
-  # 4. 彎刀 (Khopesh Sickle Sword)
+  # 4. 爆汗蠻牛飲料 (Energy Drink) - Replacing sword
   img = create_base()
   draw = ImageDraw.Draw(img)
   add_gold_rim(draw)
   draw.ellipse([30, 30, 270, 270], fill=(20, 15, 30, 230))
-  # Curved Khopesh Blade
-  draw.arc([60, 50, 240, 200], start=90, end=270, fill=(245, 158, 11, 255), width=22)
-  draw.arc([75, 65, 225, 185], start=90, end=270, fill=(56, 189, 248, 255), width=8)
-  # Handle
-  draw.line([150, 160, 150, 260], fill=(180, 83, 9, 255), width=16)
+  # Energy Can
+  draw.rectangle([100, 60, 200, 240], fill=(37, 99, 235, 255), outline=(254, 240, 138, 255), width=6)
+  # Lightning Bolt Symbol
+  draw.polygon([(150, 80), (120, 150), (160, 150), (140, 220), (180, 140), (140, 140)], fill=(253, 224, 71, 255))
   img.save(os.path.join(ASSETS_DIR, "sword.png"))
 
-  # 5. 橘寶石 (Orange Topaz)
+  # 5. 人體工學椅 (Office Chair) - Replacing gem_orange
   img = create_base()
   draw = ImageDraw.Draw(img)
   draw.polygon([(150, 25), (260, 85), (260, 215), (150, 275), (40, 215), (40, 85)], fill=(180, 83, 9, 255), outline=(253, 224, 71, 255), width=8)
-  draw.polygon([(150, 55), (230, 100), (230, 200), (150, 245), (70, 200), (70, 100)], fill=(245, 158, 11, 255))
-  draw.polygon([(150, 85), (200, 115), (200, 185), (150, 215), (100, 185), (100, 115)], fill=(254, 240, 138, 255))
+  draw.rectangle([100, 70, 200, 180], fill=(245, 158, 11, 255))
+  draw.line([150, 180, 150, 230], fill=(15, 23, 42, 255), width=10)
+  draw.text((150, 125), "工學椅", fill=(15, 23, 42, 255), anchor="mm")
   img.save(os.path.join(ASSETS_DIR, "gem_orange.png"))
 
-  # 6. 紅寶石 (Red Ruby)
+  # 6. 加班泡麵 (Cup Noodles) - Replacing gem_red
   img = create_base()
   draw = ImageDraw.Draw(img)
   draw.polygon([(150, 20), (275, 150), (150, 280), (25, 150)], fill=(153, 27, 27, 255), outline=(252, 165, 165, 255), width=8)
-  draw.polygon([(150, 55), (240, 150), (150, 245), (60, 150)], fill=(220, 38, 38, 255))
-  draw.polygon([(150, 90), (205, 150), (150, 210), (95, 150)], fill=(248, 113, 113, 255))
+  draw.polygon([(90, 80), (210, 80), (180, 220), (120, 220)], fill=(220, 38, 38, 255))
+  draw.text((150, 150), "加班泡麵", fill=(254, 240, 138, 255), anchor="mm")
   img.save(os.path.join(ASSETS_DIR, "gem_red.png"))
 
-  # 7. 紫寶石 (Purple Amethyst)
+  # 7. 辦公訂書機 (Stapler) - Replacing gem_purple
   img = create_base()
   draw = ImageDraw.Draw(img)
   draw.ellipse([30, 30, 270, 270], fill=(88, 28, 135, 255), outline=(233, 213, 255, 255), width=8)
-  draw.ellipse([60, 60, 240, 240], fill=(126, 34, 206, 255))
-  draw.ellipse([90, 90, 210, 210], fill=(168, 85, 247, 255))
-  draw.ellipse([105, 105, 165, 165], fill=(233, 213, 255, 220))
+  draw.rectangle([80, 120, 220, 170], fill=(168, 85, 247, 255), outline=(255, 255, 255, 255), width=4)
+  draw.text((150, 145), "訂書機", fill=(255, 255, 255, 255), anchor="mm")
   img.save(os.path.join(ASSETS_DIR, "gem_purple.png"))
 
-  # 8. 藍寶石 (Blue Sapphire)
+  # 8. RGB 鍵盤 (Mechanical Keyboard) - Replacing gem_blue
   img = create_base()
   draw = ImageDraw.Draw(img)
   draw.polygon([(150, 20), (270, 90), (150, 280), (30, 90)], fill=(30, 58, 138, 255), outline=(147, 197, 253, 255), width=8)
-  draw.polygon([(150, 55), (235, 105), (150, 245), (65, 105)], fill=(37, 99, 235, 255))
-  draw.polygon([(150, 90), (200, 120), (150, 210), (100, 120)], fill=(96, 165, 250, 255))
+  draw.rectangle([70, 110, 230, 190], fill=(37, 99, 235, 255), outline=(56, 189, 248, 255), width=4)
+  draw.text((150, 150), "RGB鍵盤", fill=(254, 240, 138, 255), anchor="mm")
   img.save(os.path.join(ASSETS_DIR, "gem_blue.png"))
 
-  # 9. 綠寶石 (Green Emerald)
+  # 9. 辦公水壺 (Water Bottle) - Replacing gem_green
   img = create_base()
   draw = ImageDraw.Draw(img)
   draw.rectangle([40, 40, 260, 260], fill=(6, 78, 59, 255), outline=(110, 231, 183, 255), width=8)
-  draw.rectangle([70, 70, 230, 230], fill=(5, 150, 105, 255))
-  draw.rectangle([100, 100, 200, 200], fill=(52, 211, 153, 255))
+  draw.rectangle([110, 80, 190, 220], fill=(16, 185, 129, 255))
+  draw.text((150, 150), "續水壺", fill=(255, 255, 255, 255), anchor="mm")
   img.save(os.path.join(ASSETS_DIR, "gem_green.png"))
 
-  # 10. SCATTER (3D Gold Winged Scarab)
+  # 10. SCATTER (爆肝筆電 SCATTER)
   img = create_base()
   draw = ImageDraw.Draw(img)
   add_gold_rim(draw)
   draw.ellipse([30, 30, 270, 270], fill=(76, 29, 149, 255))
-  # Golden Wings
-  draw.arc([45, 50, 255, 200], start=180, end=360, fill=(253, 224, 71, 255), width=18)
-  # Scarab Body Ruby
-  draw.ellipse([110, 100, 190, 190], fill=(220, 38, 38, 255), outline=(253, 224, 71, 255), width=6)
-  # Gold Header Badge
-  draw.rectangle([60, 210, 240, 250], fill=(180, 83, 9, 255), outline=(254, 240, 138, 255), width=3)
+  # Laptop Screen
+  draw.rectangle([70, 70, 230, 170], fill=(15, 23, 42, 255), outline=(253, 224, 71, 255), width=4)
+  draw.rectangle([50, 170, 250, 190], fill=(217, 119, 6, 255))
+  draw.text((150, 120), "特休批准", fill=(56, 189, 248, 255), anchor="mm")
+  draw.rectangle([50, 210, 250, 250], fill=(180, 83, 9, 255), outline=(254, 240, 138, 255), width=3)
   draw.text((150, 230), "SCATTER", fill=(253, 224, 71, 255), anchor="mm")
   img.save(os.path.join(ASSETS_DIR, "scatter.png"))
 
-  # 11. 力量覺醒 (Male God - Set Anubis)
+  # 11. 魔鬼老闆 (Devil Boss Head) - Replacing god_male
   img = create_base()
   draw = ImageDraw.Draw(img)
-  draw.rectangle([15, 15, 285, 285], fill=(15, 23, 42, 255), outline=(245, 158, 11, 255), width=8)
-  # Jackal Mask
-  draw.polygon([(70, 140), (45, 30), (115, 80)], fill=(245, 158, 11, 255))
-  draw.polygon([(230, 140), (255, 30), (185, 80)], fill=(245, 158, 11, 255))
-  draw.ellipse([80, 80, 220, 240], fill=(217, 119, 6, 255), outline=(253, 224, 71, 255), width=6)
-  draw.ellipse([100, 130, 130, 155], fill=(56, 189, 248, 255))
-  draw.ellipse([170, 130, 200, 155], fill=(56, 189, 248, 255))
-  draw.rectangle([40, 245, 260, 280], fill=(180, 83, 9, 255), outline=(253, 224, 71, 255), width=2)
-  draw.text((150, 262), "力量覺醒", fill=(253, 224, 71, 255), anchor="mm")
+  draw.rectangle([15, 15, 285, 285], fill=(153, 27, 27, 255), outline=(245, 158, 11, 255), width=8)
+  draw.polygon([(80, 30), (50, 90), (100, 90)], fill=(220, 38, 38, 255))
+  draw.polygon([(220, 30), (200, 90), (250, 90)], fill=(220, 38, 38, 255))
+  draw.ellipse([80, 80, 220, 220], fill=(217, 119, 6, 255), outline=(253, 224, 71, 255), width=6)
+  draw.rectangle([40, 240, 260, 275], fill=(180, 83, 9, 255), outline=(253, 224, 71, 255), width=2)
+  draw.text((150, 150), "魔鬼老闆", fill=(255, 255, 255, 255), anchor="mm")
+  draw.text((150, 258), "老闆覺醒", fill=(253, 224, 71, 255), anchor="mm")
   img.save(os.path.join(ASSETS_DIR, "god_male.png"))
 
-  # 12. 鎖定覺醒 (Female Goddess - Sekhmet)
+  # 12. 嚴厲 HR (Strict HR Goddess) - Replacing god_female
   img = create_base()
   draw = ImageDraw.Draw(img)
   draw.rectangle([15, 15, 285, 285], fill=(44, 19, 56, 255), outline=(245, 158, 11, 255), width=8)
-  draw.polygon([(150, 25), (80, 90), (220, 90)], fill=(234, 179, 8, 255))
-  draw.ellipse([80, 80, 220, 240], fill=(180, 83, 9, 255), outline=(253, 224, 71, 255), width=6)
-  draw.ellipse([100, 135, 128, 155], fill=(236, 72, 153, 255))
-  draw.ellipse([172, 135, 200, 155], fill=(236, 72, 153, 255))
-  draw.rectangle([40, 245, 260, 280], fill=(180, 83, 9, 255), outline=(253, 224, 71, 255), width=2)
-  draw.text((150, 262), "鎖定覺醒", fill=(253, 224, 71, 255), anchor="mm")
+  draw.ellipse([80, 80, 220, 220], fill=(180, 83, 9, 255), outline=(253, 224, 71, 255), width=6)
+  # Glasses
+  draw.rectangle([90, 120, 140, 145], outline=(253, 224, 71, 255), width=4)
+  draw.rectangle([160, 120, 210, 145], outline=(253, 224, 71, 255), width=4)
+  draw.rectangle([40, 240, 260, 275], fill=(180, 83, 9, 255), outline=(253, 224, 71, 255), width=2)
+  draw.text((150, 175), "嚴厲 HR", fill=(255, 255, 255, 255), anchor="mm")
+  draw.text((150, 258), "HR覺醒", fill=(253, 224, 71, 255), anchor="mm")
   img.save(os.path.join(ASSETS_DIR, "god_female.png"))
 
-  # 13. Multiplier Orb
-  img = create_base()
-  draw = ImageDraw.Draw(img)
-  add_gold_rim(draw)
-  draw.ellipse([30, 30, 270, 270], fill=(217, 119, 6, 255))
-  draw.ellipse([50, 50, 250, 250], fill=(245, 158, 11, 255))
-  draw.ellipse([80, 80, 220, 220], fill=(253, 224, 71, 255))
-  draw.text((150, 150), "25x", fill=(120, 53, 15, 255), anchor="mm")
-  img.save(os.path.join(ASSETS_DIR, "multiplier.png"))
+  # 13. MULTIPLIER ORBS (Green, Blue, Purple, Gold Fire)
+  def create_orb(color_bg, color_rim, filename):
+    img = create_base()
+    draw = ImageDraw.Draw(img)
+    draw.ellipse([10, 10, 290, 290], fill=color_bg, outline=color_rim, width=12)
+    draw.ellipse([40, 40, 260, 260], fill=color_rim, outline=(255, 255, 255, 255), width=4)
+    img.save(os.path.join(ASSETS_DIR, filename))
 
-  # 14. Background Gods Wallpaper
-  bg = Image.new("RGB", (1920, 1080), (8, 5, 14))
-  bg_draw = ImageDraw.Draw(bg)
-  bg_draw.rectangle([0, 0, 1920, 1080], fill=(12, 9, 20))
-  bg_draw.rectangle([120, 0, 320, 1080], fill=(22, 17, 34))
-  bg_draw.rectangle([1600, 0, 1800, 1080], fill=(22, 17, 34))
-  bg.save(os.path.join(ASSETS_DIR, "bg_gods.png"))
+  create_orb((6, 78, 59, 255), (16, 185, 129, 255), "mult_green.png")
+  create_orb((30, 58, 138, 255), (59, 130, 246, 255), "mult_blue.png")
+  create_orb((88, 28, 135, 255), (168, 85, 247, 255), "mult_purple.png")
+  create_orb((180, 83, 9, 255), (253, 224, 71, 255), "multiplier.png")
 
-  print("AAA HD Assets regenerated with rich 3D gold & gemstone bevels!")
+  print("Corporate Slave 3D PNG Symbol Assets generated cleanly!")
 
 if __name__ == "__main__":
-  generate_aaa_assets()
+  generate_corporate_assets()

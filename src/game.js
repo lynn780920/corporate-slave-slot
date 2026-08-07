@@ -43,7 +43,6 @@ class GameApp {
     this.laserBeams = [];
     this.floatingTexts = [];
     this.cellShockwaves = [];
-    this.headerExplosions = [];
     this.fsCoins = [];
 
     this.bigWinMode = false;
@@ -90,7 +89,8 @@ class GameApp {
     const assetList = [
       'eye', 'scepter', 'bow', 'sword', 
       'gem_orange', 'gem_red', 'gem_purple', 'gem_blue', 'gem_green',
-      'scatter', 'god_male', 'god_female', 'multiplier', 'bg_gods'
+      'scatter', 'god_male', 'god_female', 
+      'multiplier', 'mult_green', 'mult_blue', 'mult_purple', 'bg_gods'
     ];
 
     assetList.forEach(name => {
@@ -118,7 +118,6 @@ class GameApp {
     }
   }
 
-  // Spectacular Symbol Elimination Sparkle Nova Burst
   spawnExplosion(x, y, color = '#fde047', count = 40) {
     for (let i = 0; i < count; i++) {
       const angle = Math.random() * Math.PI * 2;
@@ -134,7 +133,6 @@ class GameApp {
       });
     }
 
-    // Double Ring Shockwave
     this.cellShockwaves.push({
       x, y,
       radius: 10,
@@ -163,7 +161,6 @@ class GameApp {
     });
   }
 
-  // Super Cool Multiplier Orb Laser Beam FX
   spawnMultiplierLaserBeam(startX, startY, endX, endY, multVal) {
     const midX = (startX + endX) / 2 + (Math.random() - 0.5) * 160;
     const midY = Math.min(startY, endY) - 150;
@@ -331,12 +328,10 @@ class GameApp {
           ctx.save();
           ctx.translate(centerX, centerY);
 
-          // Multiplier Orb Electric Charge Pulse Effect
           if (sym.type === SYMBOLS.MULTIPLIER) {
             const orbPulseScale = 1.0 + Math.sin(this.globalTime * 6) * 0.12;
             ctx.scale(state.scale * orbPulseScale, state.scale * orbPulseScale);
 
-            // Glowing Outer Ring Aura
             ctx.strokeStyle = '#fde047';
             ctx.lineWidth = 4;
             ctx.shadowColor = '#f59e0b';
@@ -352,21 +347,39 @@ class GameApp {
           ctx.rotate(state.rotation);
           ctx.globalAlpha = state.alpha;
 
-          const img = this.loadedImages[sym.type];
+          // Tiered Multiplier Orb Texture Selection
+          let imgKey = sym.type;
+          if (sym.type === SYMBOLS.MULTIPLIER) {
+            const v = sym.multiplierVal;
+            if (v < 8) imgKey = 'mult_green';
+            else if (v < 20) imgKey = 'mult_blue';
+            else if (v < 100) imgKey = 'mult_purple';
+            else imgKey = 'multiplier';
+          }
+
+          const img = this.loadedImages[imgKey];
           if (img) {
-            const drawSize = this.cellSize * 0.85;
+            const drawSize = this.cellSize * 0.88;
             ctx.drawImage(img, -drawSize / 2, -drawSize / 2, drawSize, drawSize);
           }
 
+          // HUGE Bold Multiplier Number Text
           if (sym.type === SYMBOLS.MULTIPLIER) {
-            ctx.font = 'black 22px Outfit, sans-serif';
-            ctx.fillStyle = '#ffffff';
-            ctx.strokeStyle = '#000000';
-            ctx.lineWidth = 4;
+            ctx.font = 'black 36px Outfit, Cinzel, sans-serif';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
+
+            // Thick Black Outer Outline
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 7;
             ctx.strokeText(`${sym.multiplierVal}x`, 0, 0);
+
+            // Bright White/Yellow Fill with Neon Glow
+            ctx.fillStyle = '#fde047';
+            ctx.shadowColor = '#f59e0b';
+            ctx.shadowBlur = 15;
             ctx.fillText(`${sym.multiplierVal}x`, 0, 0);
+            ctx.shadowBlur = 0;
           }
 
           ctx.restore();
@@ -402,7 +415,6 @@ class GameApp {
       const b = this.laserBeams[i];
       b.progress += b.speed;
       if (b.progress >= 1) {
-        // Trigger Header Pulsate Effect & Shockwave Explosion
         const headerBox = document.getElementById('ui-multiplier-box');
         if (headerBox) {
           headerBox.classList.add('scale-150', 'border-yellow-300', 'shadow-2xl');
@@ -420,7 +432,6 @@ class GameApp {
       const currX = (1 - t) * (1 - t) * p0.x + 2 * (1 - t) * t * p1.x + t * t * p2.x;
       const currY = (1 - t) * (1 - t) * p0.y + 2 * (1 - t) * t * p1.y + t * t * p2.y;
 
-      // Outer Thick Energy Laser
       ctx.strokeStyle = 'rgba(245, 158, 11, 0.85)';
       ctx.lineWidth = 12;
       ctx.shadowColor = '#f59e0b';
@@ -430,13 +441,11 @@ class GameApp {
       ctx.quadraticCurveTo(p1.x, p1.y, currX, currY);
       ctx.stroke();
 
-      // Inner Core White Laser
       ctx.strokeStyle = '#ffffff';
       ctx.lineWidth = 4;
       ctx.stroke();
       ctx.shadowBlur = 0;
 
-      // Leading Head Light Orb
       ctx.fillStyle = '#ffffff';
       ctx.shadowColor = '#fde047';
       ctx.shadowBlur = 15;
@@ -445,7 +454,6 @@ class GameApp {
       ctx.fill();
       ctx.shadowBlur = 0;
 
-      // Orbiting Laser Particle Sparkles
       for (let k = 0; k < 2; k++) {
         this.particles.push({
           x: currX + (Math.random() - 0.5) * 12,
