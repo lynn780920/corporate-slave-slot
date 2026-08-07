@@ -118,8 +118,8 @@ export class SlotEngine {
       return { type: SYMBOLS.SCATTER, id, multiplierVal: 0 };
     }
 
-    // 董事長貓皇 (4% spawn chance - rare but meaningful)
-    if (rand < 0.13) return { type: SYMBOLS.GOD_MALE, id, multiplierVal: 0 };
+    // 董事長貓皇 (8.5% spawn chance)
+    if (rand < 0.175) return { type: SYMBOLS.GOD_MALE, id, multiplierVal: 0 };
 
     // Weighted standard symbols
     const weightedSymbols = [
