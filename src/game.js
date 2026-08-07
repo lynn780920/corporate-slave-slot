@@ -100,7 +100,7 @@ class GameApp {
     const assetList = [
       'eye', 'scepter', 'bow', 'sword', 
       'gem_orange', 'gem_red', 'gem_purple', 'gem_blue', 'gem_green',
-      'scatter', 'god_male', 'god_female', 
+      'scatter', 'god_male', 'god_female', 'chairman_cat', 'gm_husky',
       'multiplier', 'mult_green', 'mult_blue', 'mult_purple', 'bg_gods'
     ];
 
@@ -403,7 +403,11 @@ class GameApp {
           ctx.rotate(state.rotation);
           ctx.globalAlpha = state.alpha;
 
-          const img = this.loadedImages[sym.type];
+          let imgKey = sym.type;
+          if (sym.type === SYMBOLS.GOD_MALE) imgKey = 'chairman_cat';
+          else if (sym.type === SYMBOLS.GOD_FEMALE) imgKey = 'gm_husky';
+          
+          const img = this.loadedImages[imgKey] || this.loadedImages[sym.type];
           if (img) {
             const drawSize = this.cellSize * 0.92;
             ctx.drawImage(img, -drawSize / 2, -drawSize / 2, drawSize, drawSize);
@@ -887,6 +891,28 @@ class GameApp {
 
       const winPositions = [];
       evalResult.winningGroups.forEach(group => {
+        if (group.type === SYMBOLS.GOD_MALE) {
+          const firstPos = group.positions[0];
+          const x = firstPos.col * (this.cellSize + this.cellGap) + this.cellGap + this.cellSize / 2;
+          const y = firstPos.row * (this.cellSize + this.cellGap) + this.cellGap + this.cellSize / 2;
+          this.spawnFloatingText(x, y - 30, '👑 董事長貓皇：力量覺醒 (倍數翻倍！)', '#fde047');
+          soundManager.playBigWin();
+          // Split / Double existing multiplier Orbs value
+          for (let c = 0; c < this.cols; c++) {
+            for (let r = 0; r < this.rows; r++) {
+              if (this.engine.grid[c][r] && this.engine.grid[c][r].type === SYMBOLS.MULTIPLIER) {
+                this.engine.grid[c][r].multiplierVal *= 2;
+              }
+            }
+          }
+        } else if (group.type === SYMBOLS.GOD_FEMALE) {
+          const firstPos = group.positions[0];
+          const x = firstPos.col * (this.cellSize + this.cellGap) + this.cellGap + this.cellSize / 2;
+          const y = firstPos.row * (this.cellSize + this.cellGap) + this.cellGap + this.cellSize / 2;
+          this.spawnFloatingText(x, y - 30, '👔 總經理哈士奇：鎖定覺醒 (倍數蓄力！)', '#38bdf8');
+          soundManager.playBigWin();
+        }
+
         group.positions.forEach(pos => {
           winPositions.push(pos);
           const x = pos.col * (this.cellSize + this.cellGap) + this.cellGap + this.cellSize / 2;
