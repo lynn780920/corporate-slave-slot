@@ -118,11 +118,10 @@ export class SlotEngine {
       return { type: SYMBOLS.SCATTER, id, multiplierVal: 0 };
     }
 
-    // High Boss Symbols (12% chance each for easy testing of Awakening skills)
-    if (rand < 0.21) return { type: SYMBOLS.GOD_MALE, id, multiplierVal: 0 };
-    if (rand < 0.33) return { type: SYMBOLS.GOD_FEMALE, id, multiplierVal: 0 };
+    // 董事長貓皇 (4% spawn chance - rare but meaningful)
+    if (rand < 0.13) return { type: SYMBOLS.GOD_MALE, id, multiplierVal: 0 };
 
-    // Weighted standard symbols for ~35% natural hit rate
+    // Weighted standard symbols
     const weightedSymbols = [
       SYMBOLS.GEM_GREEN, SYMBOLS.GEM_GREEN, SYMBOLS.GEM_GREEN,
       SYMBOLS.GEM_BLUE, SYMBOLS.GEM_BLUE, SYMBOLS.GEM_BLUE,
@@ -144,7 +143,7 @@ export class SlotEngine {
     if (rand < 0.82) return [2, 3, 4, 5][Math.floor(Math.random() * 4)];
     if (rand < 0.96) return [8, 10, 12, 15][Math.floor(Math.random() * 4)];
     if (rand < 0.998) return [20, 25, 35][Math.floor(Math.random() * 3)];
-    return [50, 100][Math.floor(Math.random() * 2)]; // 0.2% ultra rare
+    return [50, 100][Math.floor(Math.random() * 2)];
   }
 
   generateSpinGrid(isBuyFeature = false) {
@@ -196,18 +195,16 @@ export class SlotEngine {
     for (const [type, count] of Object.entries(symbolCounts)) {
       if (type === SYMBOLS.SCATTER) continue;
 
-      const minCount = (type === SYMBOLS.GOD_MALE || type === SYMBOLS.GOD_FEMALE) ? 4 : 8;
-
-      if (count >= minCount) {
+      // 所有符號統一 8 個觸發，董事長貓皇也是 8 個才觸發覺醒
+      if (count >= 8) {
         let payFactor = 0;
         const payTableMap = PAYTABLE[type];
         if (payTableMap) {
           if (count >= 12) payFactor = payTableMap[12] || 30.0;
           else if (count >= 10) payFactor = payTableMap[10] || 15.0;
-          else if (count >= 8) payFactor = payTableMap[8] || 5.0;
-          else payFactor = 2.0;
+          else payFactor = payTableMap[8] || 5.0;
         } else {
-          payFactor = 2.0;
+          payFactor = 5.0;
         }
 
         const payout = payFactor * this.currentBet;
