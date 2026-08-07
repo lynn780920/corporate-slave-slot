@@ -2,21 +2,28 @@
  * 社畜變賭徒 - 多使用者帳號註冊/登入與餘額持久化管理 (Account & Balance Storage)
  */
 
-const STORAGE_KEY = 'corporate_slave_users_v4';
-const CURRENT_USER_KEY = 'corporate_slave_current_user_v4';
+const STORAGE_KEY = 'corporate_slave_users_v5';
+const CURRENT_USER_KEY = 'corporate_slave_current_user_v5';
 
 export class AccountManager {
   constructor() {
+    // Purge ALL old version keys from localStorage to prevent sticky old balances
+    try {
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && (key.startsWith('corporate_slave_users') || key.startsWith('corporate_slave_current_user'))) {
+          if (key !== STORAGE_KEY && key !== CURRENT_USER_KEY) {
+            localStorage.removeItem(key);
+          }
+        }
+      }
+    } catch (e) {}
+
     this.users = this.loadUsers();
     this.currentUser = this.loadCurrentUser();
     if (!this.currentUser) {
       // Default guest user starting balance strictly $2,000
       this.currentUser = this.register('社畜賭徒', 2000);
-    }
-    // Hard clamp all existing account balances to $2,000 if above $2,000 on fresh version load
-    if (this.currentUser && this.currentUser.balance > 2000) {
-      this.currentUser.balance = 2000;
-      this.saveUsers();
     }
   }
 
@@ -24,10 +31,6 @@ export class AccountManager {
     try {
       const data = localStorage.getItem(STORAGE_KEY);
       const parsed = data ? JSON.parse(data) : {};
-      // Ensure all users have max $2,000 balance
-      Object.keys(parsed).forEach(k => {
-        if (parsed[k].balance > 2000) parsed[k].balance = 2000;
-      });
       return parsed;
     } catch (e) {
       return {};
@@ -71,8 +74,6 @@ export class AccountManager {
         createdAt: new Date().toISOString()
       };
       this.saveUsers();
-    } else {
-      this.users[trimmed].balance = Math.min(2000, this.users[trimmed].balance);
     }
     
     this.currentUser = this.users[trimmed];
