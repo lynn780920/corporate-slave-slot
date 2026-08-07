@@ -55,7 +55,9 @@ export class SlotEngine {
     this.isFreeSpins = false;
     this.freeSpinsRemaining = 0;
     this.totalFreeSpinsWin = 0;
-    this.globalMultiplierPool = 0;
+    // Special Awakening Skill States
+    this.lockedMultiplierVal = 0;
+    this.lockedMultiplierSpins = 0;
 
     this.turbo = false;
     this.autoSpinCount = 0;

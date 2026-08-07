@@ -731,10 +731,18 @@ class GameApp {
       if (!this.engine.isFreeSpins) {
         this.engine.balance -= bet;
         this.uiManager.setWinAmount(0);
-        this.uiManager.setMultiplierDisplay(1);
+        if (this.engine.lockedMultiplierSpins > 0 && this.engine.lockedMultiplierVal > 0) {
+          this.uiManager.setMultiplierDisplay(`🔒 ${this.engine.lockedMultiplierVal}x (${this.engine.lockedMultiplierSpins}局)`);
+        } else {
+          this.uiManager.setMultiplierDisplay(1);
+        }
       } else {
         this.engine.freeSpinsRemaining--;
-        this.uiManager.setMultiplierDisplay(Math.max(1, this.engine.globalMultiplierPool));
+        if (this.engine.lockedMultiplierSpins > 0 && this.engine.lockedMultiplierVal > 0) {
+          this.uiManager.setMultiplierDisplay(`🔒 ${this.engine.lockedMultiplierVal}x (${this.engine.lockedMultiplierSpins}局)`);
+        } else {
+          this.uiManager.setMultiplierDisplay(Math.max(1, this.engine.globalMultiplierPool));
+        }
       }
 
       this.uiManager.updateDisplay();
@@ -904,9 +912,11 @@ class GameApp {
           const firstPos = group.positions[0];
           const x = firstPos.col * (this.cellSize + this.cellGap) + this.cellGap + this.cellSize / 2;
           const y = firstPos.row * (this.cellSize + this.cellGap) + this.cellGap + this.cellSize / 2;
-          this.spawnFloatingText(x, y - 30, '👑 董事長貓皇：力量覺醒 (倍數翻倍！)', '#fde047');
-          soundManager.playBigWin();
-          // Split / Double existing multiplier Orbs value
+          
+          if (this.engine.lockedMultiplierVal > 0) {
+            this.engine.lockedMultiplierVal *= 2;
+          }
+
           for (let c = 0; c < this.cols; c++) {
             for (let r = 0; r < this.rows; r++) {
               if (this.engine.grid[c][r] && this.engine.grid[c][r].type === SYMBOLS.MULTIPLIER) {
@@ -914,11 +924,19 @@ class GameApp {
               }
             }
           }
+
+          this.spawnFloatingText(x, y - 30, `👑 董事長貓皇：力量覺醒！倍數 2 倍翻倍！`, '#fde047');
+          soundManager.playBigWin();
         } else if (group.type === SYMBOLS.GOD_FEMALE) {
           const firstPos = group.positions[0];
           const x = firstPos.col * (this.cellSize + this.cellGap) + this.cellGap + this.cellSize / 2;
           const y = firstPos.row * (this.cellSize + this.cellGap) + this.cellGap + this.cellSize / 2;
-          this.spawnFloatingText(x, y - 30, '👔 總經理哈士奇：鎖定覺醒 (倍數蓄力！)', '#38bdf8');
+
+          this.engine.lockedMultiplierSpins = 4; // Active for 3 subsequent spins
+          const baseLock = Math.max(this.engine.lockedMultiplierVal || 0, spinMultiplierSum || 0, 15);
+          this.engine.lockedMultiplierVal = baseLock;
+
+          this.spawnFloatingText(x, y - 30, `👔 總經理哈士奇：鎖定覺醒！鎖定 ${baseLock}x 保留 3 局！`, '#38bdf8');
           soundManager.playBigWin();
         }
 
@@ -962,12 +980,24 @@ class GameApp {
       finalTotalMultiplier = Math.max(1, this.engine.globalMultiplierPool);
     }
 
-    this.uiManager.setMultiplierDisplay(finalTotalMultiplier);
+    if (this.engine.lockedMultiplierSpins > 0 && this.engine.lockedMultiplierVal > 0) {
+      finalTotalMultiplier = Math.max(finalTotalMultiplier, this.engine.lockedMultiplierVal);
+    }
+
+    if (this.engine.lockedMultiplierSpins > 0 && this.engine.lockedMultiplierVal > 0) {
+      this.uiManager.setMultiplierDisplay(`🔒 ${this.engine.lockedMultiplierVal}x (${this.engine.lockedMultiplierSpins - 1}局)`);
+    } else {
+      this.uiManager.setMultiplierDisplay(finalTotalMultiplier);
+    }
 
     const finalSpinPayout = spinTotalWin * finalTotalMultiplier;
     this.engine.balance += finalSpinPayout;
     this.uiManager.setWinAmount(finalSpinPayout);
     this.uiManager.updateDisplay();
+
+    if (this.engine.lockedMultiplierSpins > 0) {
+      this.engine.lockedMultiplierSpins--;
+    }
 
     if (this.engine.isFreeSpins) {
       this.engine.totalFreeSpinsWin += finalSpinPayout;

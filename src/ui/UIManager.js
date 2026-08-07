@@ -263,11 +263,16 @@ export class UIManager {
 
   setMultiplierDisplay(multiplier) {
     if (this.elMultiplier) {
-      this.elMultiplier.textContent = `${multiplier}x`;
-      if (multiplier > 1) {
+      if (typeof multiplier === 'string') {
+        this.elMultiplier.textContent = multiplier;
         this.elMultiplier.classList.add('gold-text-glow');
       } else {
-        this.elMultiplier.classList.remove('gold-text-glow');
+        this.elMultiplier.textContent = `${multiplier}x`;
+        if (multiplier > 1) {
+          this.elMultiplier.classList.add('gold-text-glow');
+        } else {
+          this.elMultiplier.classList.remove('gold-text-glow');
+        }
       }
     }
   }
