@@ -104,9 +104,8 @@ class GameApp {
     const assetList = [
       'eye', 'scepter', 'bow', 'sword', 
       'gem_orange', 'gem_red', 'gem_purple', 'gem_blue', 'gem_green',
-      'scatter', 'god_male', 'chairman_cat',
-      'multiplier', 'mult_green', 'mult_blue', 'mult_purple', 'bg_gods',
-      'cat_emperor_cinematic'
+      'scatter', 'god_male', 'god_female', 'chairman_cat', 'gm_husky',
+      'multiplier', 'mult_green', 'mult_blue', 'mult_purple', 'bg_gods'
     ];
 
     const baseUrl = (typeof import.meta !== 'undefined' && import.meta && import.meta.env && import.meta.env.BASE_URL) ? import.meta.env.BASE_URL : './';
@@ -135,204 +134,6 @@ class GameApp {
       this.fsCanvas.width = window.innerWidth;
       this.fsCanvas.height = window.innerHeight;
     }
-  }
-
-  triggerCatEmperorCinematic() {
-    return new Promise(resolve => {
-      const overlay = document.getElementById('cat-emperor-cinematic');
-      const cnv = document.getElementById('cinematic-canvas');
-      if (!overlay || !cnv) { resolve(); return; }
-
-      overlay.classList.remove('hidden');
-      cnv.width = window.innerWidth;
-      cnv.height = window.innerHeight;
-      const ctx = cnv.getContext('2d');
-      const W = cnv.width, H = cnv.height;
-
-      const catEmpImg = this.loadedImages['cat_emperor_cinematic'];
-      const catImg = this.loadedImages['chairman_cat'];
-
-      let frame = 0;
-      const TOTAL = 230; // ~3.8s at 60fps
-
-      // particles
-      const particles = [];
-      for (let i = 0; i < 180; i++) {
-        const angle = Math.random() * Math.PI * 2;
-        particles.push({
-          x: W / 2 + (Math.random() - 0.5) * W * 0.8,
-          y: H / 2 + (Math.random() - 0.5) * H * 0.6,
-          vx: (Math.random() - 0.5) * 6,
-          vy: -3 - Math.random() * 8,
-          size: 2 + Math.random() * 7,
-          alpha: 0.6 + Math.random() * 0.4,
-          color: Math.random() < 0.6 ? '#fde047' : (Math.random() < 0.5 ? '#f59e0b' : '#fff'),
-          decay: 0.008 + Math.random() * 0.01
-        });
-      }
-
-      // crack lines from center
-      const cracks = Array.from({length: 12}, (_, i) => {
-        const angle = (i / 12) * Math.PI * 2 + Math.random() * 0.3;
-        const len = 80 + Math.random() * (Math.min(W, H) * 0.45);
-        return {
-          x1: W / 2, y1: H / 2,
-          x2: W / 2 + Math.cos(angle) * len,
-          y2: H / 2 + Math.sin(angle) * len,
-          w: 1.5 + Math.random() * 3
-        };
-      });
-
-      const animate = () => {
-        ctx.clearRect(0, 0, W, H);
-        const t = frame / TOTAL; // 0→1
-
-        // --- Background: dark with vignette ---
-        ctx.fillStyle = '#000';
-        ctx.fillRect(0, 0, W, H);
-
-        // Cinematic backdrop image (fades in 0→0.3)
-        if (catEmpImg && t > 0.05) {
-          const imgAlpha = Math.min(1, (t - 0.05) / 0.25);
-          ctx.globalAlpha = imgAlpha;
-          // cover fit
-          const scale = Math.max(W / catEmpImg.width, H / catEmpImg.height);
-          const iw = catEmpImg.width * scale, ih = catEmpImg.height * scale;
-          ctx.drawImage(catEmpImg, (W - iw) / 2, (H - ih) / 2, iw, ih);
-          ctx.globalAlpha = 1;
-        }
-
-        // Dark overlay vignette
-        const vig = ctx.createRadialGradient(W/2, H/2, H*0.2, W/2, H/2, H*0.85);
-        vig.addColorStop(0, 'rgba(0,0,0,0)');
-        vig.addColorStop(1, 'rgba(0,0,0,0.82)');
-        ctx.fillStyle = vig;
-        ctx.fillRect(0, 0, W, H);
-
-        // --- Golden cracks (0.05→0.45) ---
-        if (t > 0.05 && t < 0.55) {
-          const crackAlpha = t < 0.35 ? Math.min(1, (t-0.05)/0.15) : 1 - (t-0.35)/0.2;
-          ctx.globalAlpha = crackAlpha;
-          cracks.forEach(cr => {
-            ctx.save();
-            ctx.strokeStyle = '#fde047';
-            ctx.lineWidth = cr.w;
-            ctx.shadowColor = '#f59e0b';
-            ctx.shadowBlur = 18;
-            ctx.beginPath();
-            ctx.moveTo(cr.x1, cr.y1);
-            ctx.lineTo(cr.x2, cr.y2);
-            ctx.stroke();
-            ctx.restore();
-          });
-          ctx.globalAlpha = 1;
-        }
-
-        // --- Central cat avatar descending (0.15→0.75) ---
-        if (catImg && t > 0.15) {
-          const charT = Math.min(1, (t - 0.15) / 0.35);
-          const ease = 1 - Math.pow(1 - charT, 3); // ease out cubic
-          const avatarSize = Math.min(W, H) * 0.38;
-          const startY = -avatarSize;
-          const endY = H / 2 - avatarSize * 0.5;
-          const posY = startY + (endY - startY) * ease;
-          const posX = W / 2 - avatarSize / 2;
-
-          const charAlpha = Math.min(1, charT * 2);
-          ctx.save();
-          ctx.globalAlpha = charAlpha;
-          // Glow aura
-          const aura = ctx.createRadialGradient(W/2, posY + avatarSize/2, 0, W/2, posY + avatarSize/2, avatarSize * 0.9);
-          aura.addColorStop(0, 'rgba(253,224,71,0.7)');
-          aura.addColorStop(0.5, 'rgba(245,158,11,0.3)');
-          aura.addColorStop(1, 'rgba(0,0,0,0)');
-          ctx.fillStyle = aura;
-          ctx.beginPath();
-          ctx.arc(W/2, posY + avatarSize/2, avatarSize * 0.9, 0, Math.PI * 2);
-          ctx.fill();
-
-          ctx.shadowColor = '#fde047';
-          ctx.shadowBlur = 60;
-          ctx.drawImage(catImg, posX, posY, avatarSize, avatarSize);
-          ctx.restore();
-        }
-
-        // --- Particles ---
-        particles.forEach(p => {
-          p.x += p.vx;
-          p.y += p.vy;
-          p.alpha -= p.decay;
-          if (p.alpha > 0) {
-            ctx.save();
-            ctx.globalAlpha = p.alpha;
-            ctx.fillStyle = p.color;
-            ctx.shadowColor = p.color;
-            ctx.shadowBlur = 10;
-            ctx.beginPath();
-            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.restore();
-          }
-        });
-
-        // --- Title Text: 貓皇降臨 (0.4→0.9) ---
-        if (t > 0.4) {
-          const textT = Math.min(1, (t - 0.4) / 0.15);
-          const textAlpha = t > 0.85 ? 1 - (t - 0.85) / 0.12 : textT;
-          const fontSize = Math.floor(Math.min(W, H) * 0.13 * (0.6 + textT * 0.4));
-
-          ctx.save();
-          ctx.globalAlpha = Math.max(0, textAlpha);
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-
-          // Shadow/glow behind text
-          ctx.shadowColor = '#f59e0b';
-          ctx.shadowBlur = 55;
-          ctx.font = `900 ${fontSize}px 'Noto Serif TC', Cinzel, serif`;
-
-          // Stroke
-          ctx.strokeStyle = '#78350f';
-          ctx.lineWidth = fontSize * 0.06;
-          ctx.strokeText('貓皇降臨', W / 2, H * 0.75);
-
-          // Gold gradient fill
-          const grad = ctx.createLinearGradient(W/2 - 200, H*0.72, W/2 + 200, H*0.78);
-          grad.addColorStop(0, '#fde047');
-          grad.addColorStop(0.4, '#ffffff');
-          grad.addColorStop(0.6, '#fde047');
-          grad.addColorStop(1, '#f59e0b');
-          ctx.fillStyle = grad;
-          ctx.fillText('貓皇降臨', W / 2, H * 0.75);
-
-          // Subtitle
-          ctx.shadowBlur = 20;
-          ctx.font = `700 ${Math.floor(fontSize * 0.3)}px 'Noto Serif TC', Cinzel, serif`;
-          ctx.fillStyle = 'rgba(253,224,71,0.9)';
-          ctx.fillText('⚡ 倍數球 全部 2 倍翻倍！⚡', W / 2, H * 0.75 + fontSize * 0.75);
-          ctx.restore();
-        }
-
-        // --- Screen flash at start (t<0.08) ---
-        if (t < 0.08) {
-          ctx.save();
-          ctx.globalAlpha = 1 - t / 0.08;
-          ctx.fillStyle = '#ffffff';
-          ctx.fillRect(0, 0, W, H);
-          ctx.restore();
-        }
-
-        frame++;
-        if (frame < TOTAL) {
-          requestAnimationFrame(animate);
-        } else {
-          overlay.classList.add('hidden');
-          resolve();
-        }
-      };
-
-      requestAnimationFrame(animate);
-    });
   }
 
   spawnExplosion(x, y, color = '#fde047', count = 40) {
@@ -695,6 +496,7 @@ class GameApp {
 
           let imgKey = sym.type;
           if (sym.type === SYMBOLS.GOD_MALE) imgKey = 'chairman_cat';
+          else if (sym.type === SYMBOLS.GOD_FEMALE) imgKey = 'gm_husky';
           
           const img = this.loadedImages[imgKey] || this.loadedImages[sym.type];
           if (img) {
@@ -1220,22 +1022,57 @@ class GameApp {
       const winPositions = [];
       evalResult.winningGroups.forEach(group => {
         if (group.type === SYMBOLS.GOD_MALE) {
-          // Double all multiplier orbs on grid
+          const firstPos = group.positions[0];
+          const x = firstPos.col * (this.cellSize + this.cellGap) + this.cellGap + this.cellSize / 2;
+          const y = firstPos.row * (this.cellSize + this.cellGap) + this.cellGap + this.cellSize / 2;
+          
           if (this.engine.lockedMultiplierVal > 0) {
             this.engine.lockedMultiplierVal *= 2;
           }
+
+          // Double multiplier values on all grid orbs & shoot lightning laser beams!
           for (let c = 0; c < this.cols; c++) {
             for (let r = 0; r < this.rows; r++) {
               if (this.engine.grid[c][r] && this.engine.grid[c][r].type === SYMBOLS.MULTIPLIER) {
                 this.engine.grid[c][r].multiplierVal *= 2;
+                const orbX = c * (this.cellSize + this.cellGap) + this.cellGap + this.cellSize / 2;
+                const orbY = r * (this.cellSize + this.cellGap) + this.cellGap + this.cellSize / 2;
+                this.spawnMultiplierLaserBeam(x, y, orbX, orbY, this.engine.grid[c][r].multiplierVal);
+                this.spawnShockwave(orbX, orbY);
               }
             }
           }
 
-          // 🎬 Play 貓皇降臨 cinematic!
-          soundManager.playBigWin();
-          await this.triggerCatEmperorCinematic();
+          this.godFlashAlpha = 0.85;
+          this.godFlashColor = 'rgba(253, 224, 71, 0.4)';
           this.triggerShake(22, 30);
+          this.spawnFloatingText(x, y - 40, `👑 力量覺醒！倍數 2 倍翻倍！`);
+          soundManager.playBigWin();
+        } else if (group.type === SYMBOLS.GOD_FEMALE) {
+          const firstPos = group.positions[0];
+          const x = firstPos.col * (this.cellSize + this.cellGap) + this.cellGap + this.cellSize / 2;
+          const y = firstPos.row * (this.cellSize + this.cellGap) + this.cellGap + this.cellSize / 2;
+
+          this.engine.lockedMultiplierSpins = 4; // Active for 3 subsequent spins
+          const baseLock = Math.max(this.engine.lockedMultiplierVal || 0, spinMultiplierSum || 0, 15);
+          this.engine.lockedMultiplierVal = baseLock;
+
+          for (let c = 0; c < this.cols; c++) {
+            for (let r = 0; r < this.rows; r++) {
+              if (this.engine.grid[c][r] && this.engine.grid[c][r].type === SYMBOLS.MULTIPLIER) {
+                const orbX = c * (this.cellSize + this.cellGap) + this.cellGap + this.cellSize / 2;
+                const orbY = r * (this.cellSize + this.cellGap) + this.cellGap + this.cellSize / 2;
+                this.spawnMultiplierLaserBeam(x, y, orbX, orbY, baseLock);
+                this.spawnShockwave(orbX, orbY);
+              }
+            }
+          }
+
+          this.godFlashAlpha = 0.85;
+          this.godFlashColor = 'rgba(56, 189, 248, 0.4)';
+          this.triggerShake(22, 30);
+          this.spawnFloatingText(x, y - 40, `👔 鎖定覺醒！鎖定 ${baseLock}x 保留 3 局！`);
+          soundManager.playBigWin();
         }
 
         group.positions.forEach(pos => {
