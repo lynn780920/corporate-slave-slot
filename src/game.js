@@ -1510,17 +1510,14 @@ class GameApp {
       this.engine.totalFreeSpinsWin += finalSpinPayout;
     }
 
-    if (finalSpinPayout >= this.engine.getBet() * 40) {
+    if (finalSpinPayout >= this.engine.getBet() * 3) {
       soundManager.playBigWin();
       await this.triggerFullscreenBigWin(finalSpinPayout);
     }
 
-    if (finalSpinPayout > 0) {
+    if (finalSpinPayout >= this.engine.getBet() * 3 && !this.engine.isFreeSpins) {
       this.lastSpinWin = finalSpinPayout;
-      const btnGamble = document.getElementById('btn-gamble');
-      if (btnGamble && !this.engine.isFreeSpins && this.engine.autoSpinCount === 0) {
-        btnGamble.classList.remove('hidden');
-      }
+      await this.triggerGambleModal(finalSpinPayout);
     }
 
     const scattersRes = this.engine.countScatters();
