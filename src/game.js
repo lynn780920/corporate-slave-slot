@@ -93,9 +93,12 @@ class GameApp {
       'multiplier', 'mult_green', 'mult_blue', 'mult_purple', 'bg_gods'
     ];
 
+    const baseUrl = import.meta.env.BASE_URL || './';
+    const cleanBase = baseUrl.endsWith('/') ? baseUrl : baseUrl + '/';
+
     assetList.forEach(name => {
       const img = new Image();
-      img.src = `/assets/${name}.png`;
+      img.src = `${cleanBase}assets/${name}.png`;
       img.onload = () => {
         this.loadedImages[name] = img;
       };
