@@ -255,6 +255,22 @@ class GameApp {
           ctx.restore();
         }
 
+        // White flash intro
+        if (t < 0.07) {
+          ctx.save(); ctx.globalAlpha = 1 - t/0.07;
+          ctx.fillStyle='#fff'; ctx.fillRect(0,0,W,H);
+          ctx.restore();
+        }
+
+        frame++;
+        if (frame < TOTAL) requestAnimationFrame(doFrame);
+        else { overlay.classList.add('hidden'); resolve(); }
+      };
+
+      requestAnimationFrame(doFrame);
+    });
+  }
+
   // =============================================
   // 🏚️ 乞丐躺路邊窮困潦倒 破產救濟 CINEMATIC
   // =============================================
