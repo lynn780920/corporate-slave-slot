@@ -205,16 +205,19 @@ export class SlotEngine {
     for (const [type, count] of Object.entries(symbolCounts)) {
       if (type === SYMBOLS.SCATTER) continue;
 
-      // 所有符號統一 8 個觸發，董事長貓皇也是 8 個才觸發覺醒
-      if (count >= 8) {
+      // 4 個以上即出發連線中獎，讓倍數球能頻繁生效加乘！ (貓皇 8+ 才觸發大招覺醒)
+      const minCount = 4;
+
+      if (count >= minCount) {
         let payFactor = 0;
         const payTableMap = PAYTABLE[type];
         if (payTableMap) {
           if (count >= 12) payFactor = payTableMap[12] || 30.0;
           else if (count >= 10) payFactor = payTableMap[10] || 15.0;
-          else payFactor = payTableMap[8] || 5.0;
+          else if (count >= 8) payFactor = payTableMap[8] || 5.0;
+          else payFactor = 1.5;
         } else {
-          payFactor = 5.0;
+          payFactor = 1.5;
         }
 
         const payout = payFactor * this.currentBet;

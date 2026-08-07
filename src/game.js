@@ -60,6 +60,14 @@ class GameApp {
     this.godFlashColor = '#f59e0b';
     this.godRaysAngle = 0;
 
+    // 🥫 貓草罐頭主動技能狀態
+    this.catTreatEnergy = 100;
+    this.isTargetingTreat = false;
+
+    if (this.canvas) {
+      this.canvas.addEventListener('click', (e) => this.onCanvasClicked(e));
+    }
+
     this.cellStates = Array.from({ length: 6 }, () => 
       Array.from({ length: 5 }, () => ({
         offsetY: 0, scale: 1, alpha: 1, glow: 0, rotation: 0
@@ -300,6 +308,102 @@ class GameApp {
 
       btn.addEventListener('click', handleClaim);
     });
+  }
+
+  // =============================================
+  // 🥫 貓草罐頭主動技能邏輯 (Active Treat Skill)
+  // =============================================
+  updateTreatEnergyDisplay() {
+    const elVal = document.getElementById('treat-energy-val');
+    const btn = document.getElementById('btn-cat-treat');
+    if (elVal) elVal.textContent = `${this.catTreatEnergy}%`;
+    if (btn) {
+      if (this.catTreatEnergy >= 100) {
+        btn.classList.add('animate-pulse', 'border-emerald-300');
+        btn.classList.remove('opacity-50');
+      } else {
+        btn.classList.remove('animate-pulse', 'border-emerald-300');
+        btn.classList.add('opacity-50');
+      }
+    }
+  }
+
+  onCatTreatSkillClicked() {
+    if (this.isSpinning) return;
+    if (this.catTreatEnergy < 100) {
+      alert(`🥫 貓草罐頭充能中 (${this.catTreatEnergy}%/100%)，隨每局旋轉自動 +20% 積蓄！`);
+      return;
+    }
+
+    this.isTargetingTreat = true;
+    const banner = document.getElementById('treat-prompt-banner');
+    if (banner) banner.classList.remove('hidden');
+    soundManager.playBigWin();
+  }
+
+  onCanvasClicked(e) {
+    if (!this.isTargetingTreat) return;
+
+    const rect = this.canvas.getBoundingClientRect();
+    const scaleX = this.gridWidth / rect.width;
+    const scaleY = this.gridHeight / rect.height;
+
+    const clickX = (e.clientX - rect.left) * scaleX;
+    const clickY = (e.clientY - rect.top) * scaleY;
+
+    const col = Math.floor((clickX - this.cellGap) / (this.cellSize + this.cellGap));
+    const row = Math.floor((clickY - this.cellGap) / (this.cellSize + this.cellGap));
+
+    if (col >= 0 && col < this.cols && row >= 0 && row < this.rows) {
+      this.executeCatTreatToss(col, row);
+    }
+  }
+
+  async executeCatTreatToss(col, row) {
+    this.isTargetingTreat = false;
+    const banner = document.getElementById('treat-prompt-banner');
+    if (banner) banner.classList.add('hidden');
+
+    this.catTreatEnergy = 0;
+    this.updateTreatEnergyDisplay();
+
+    // 罐頭目標中心格變成 50x 倍數寶珠
+    this.engine.grid[col][row] = {
+      type: SYMBOLS.MULTIPLIER,
+      id: this.engine.nextSymbolId++,
+      multiplierVal: 50
+    };
+
+    // 周圍 3x3 鄰居變成 25x 或 10x 倍數寶珠或貓皇
+    for (let c = Math.max(0, col - 1); c <= Math.min(this.cols - 1, col + 1); c++) {
+      for (let r = Math.max(0, row - 1); r <= Math.min(this.rows - 1, row + 1); r++) {
+        if (c === col && r === row) continue;
+        const randType = Math.random();
+        if (randType < 0.6) {
+          this.engine.grid[c][r] = {
+            type: SYMBOLS.MULTIPLIER,
+            id: this.engine.nextSymbolId++,
+            multiplierVal: Math.random() < 0.5 ? 25 : 10
+          };
+        } else {
+          this.engine.grid[c][r] = {
+            type: SYMBOLS.GOD_MALE,
+            id: this.engine.nextSymbolId++,
+            multiplierVal: 0
+          };
+        }
+      }
+    }
+
+    const targetX = col * (this.cellSize + this.cellGap) + this.cellGap + this.cellSize / 2;
+    const targetY = row * (this.cellSize + this.cellGap) + this.cellGap + this.cellSize / 2;
+
+    this.spawnExplosion(targetX, targetY, '#fde047', 90);
+    this.spawnShockwave(targetX, targetY);
+    this.triggerShake(28, 35);
+    soundManager.playExplode();
+
+    await this.runTurnLoop();
   }
 
   // =============================================
@@ -731,8 +835,6 @@ class GameApp {
         }
       }
     }
-
-    this.drawGatesOfSetMascots(ctx, w, h);
 
     // Cell Elimination Shockwaves
     for (let i = this.cellShockwaves.length - 1; i >= 0; i--) {
