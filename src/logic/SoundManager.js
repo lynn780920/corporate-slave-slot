@@ -14,22 +14,26 @@ class SoundManager {
 
   initBGM() {
     try {
-      const baseUrl = import.meta.env.BASE_URL || './';
-      const cleanBase = baseUrl.endsWith('/') ? baseUrl : baseUrl + '/';
-      
-      this.bgmAudio = new Audio(`${cleanBase}assets/bgm.mp3`);
+      const bgmUrl = new URL('assets/bgm.mp3', window.location.href).href;
+      this.bgmAudio = new Audio(bgmUrl);
       this.bgmAudio.loop = true;
-      this.bgmAudio.volume = 0.25;
-    } catch (e) {}
+      this.bgmAudio.volume = 0.35;
+    } catch (e) {
+      try {
+        this.bgmAudio = new Audio('assets/bgm.mp3');
+        this.bgmAudio.loop = true;
+        this.bgmAudio.volume = 0.35;
+      } catch (err) {}
+    }
   }
 
   startBGM() {
-    if (this.muted || this.bgmPlaying) return;
+    if (this.muted) return;
     if (this.bgmAudio) {
       this.bgmAudio.play().then(() => {
         this.bgmPlaying = true;
-      }).catch(() => {
-        // Autoplay policy fallback
+      }).catch((e) => {
+        console.warn("BGM play waiting for user click:", e);
       });
     }
   }
@@ -41,7 +45,7 @@ class SoundManager {
         if (AudioCtx) {
           this.ctx = new AudioCtx();
           this.masterGain = this.ctx.createGain();
-          this.masterGain.gain.value = 0.3; // Default volume
+          this.masterGain.gain.value = 0.4; // Volume
           this.masterGain.connect(this.ctx.destination);
         }
       }
@@ -57,7 +61,7 @@ class SoundManager {
   toggleMute() {
     this.muted = !this.muted;
     if (this.masterGain) {
-      this.masterGain.gain.value = this.muted ? 0 : 0.3;
+      this.masterGain.gain.value = this.muted ? 0 : 0.4;
     }
     if (this.bgmAudio) {
       if (this.muted) {
@@ -80,8 +84,8 @@ class SoundManager {
       const gain = this.ctx.createGain();
 
       osc.type = 'triangle';
-      osc.frequency.setValueAtTime(150, this.ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(60, this.ctx.currentTime + 0.25);
+      osc.frequency.setValueAtTime(180, this.ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(70, this.ctx.currentTime + 0.25);
 
       gain.gain.setValueAtTime(0.4, this.ctx.currentTime);
       gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.25);
@@ -104,8 +108,8 @@ class SoundManager {
       const gain = this.ctx.createGain();
 
       osc.type = 'sine';
-      osc.frequency.setValueAtTime(120, this.ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(40, this.ctx.currentTime + 0.1);
+      osc.frequency.setValueAtTime(140, this.ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(50, this.ctx.currentTime + 0.1);
 
       gain.gain.setValueAtTime(0.5, this.ctx.currentTime);
       gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.1);
@@ -118,7 +122,7 @@ class SoundManager {
     } catch (e) {}
   }
 
-  // Symbol Match Elimination Pop Sound FX
+  // Symbol Match Elimination Pop Sound FX (即時水晶爆破聲)
   playExplode() {
     try {
       if (this.muted) return;
@@ -126,27 +130,27 @@ class SoundManager {
       if (!this.ctx) return;
 
       // Play 3 cascading crisp pop notes for symbol elimination
-      const notes = [587.33, 880, 1174.66];
+      const notes = [587.33, 880, 1174.66, 1760.00];
       notes.forEach((freq, idx) => {
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
 
         osc.type = 'sine';
-        osc.frequency.setValueAtTime(freq, this.ctx.currentTime + idx * 0.04);
-        osc.frequency.exponentialRampToValueAtTime(freq * 1.5, this.ctx.currentTime + idx * 0.04 + 0.08);
+        osc.frequency.setValueAtTime(freq, this.ctx.currentTime + idx * 0.05);
+        osc.frequency.exponentialRampToValueAtTime(freq * 1.6, this.ctx.currentTime + idx * 0.05 + 0.1);
 
-        gain.gain.setValueAtTime(0.5, this.ctx.currentTime + idx * 0.04);
-        gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + idx * 0.04 + 0.12);
+        gain.gain.setValueAtTime(0.6, this.ctx.currentTime + idx * 0.05);
+        gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + idx * 0.05 + 0.14);
 
         osc.connect(gain);
         gain.connect(this.masterGain);
 
-        osc.start(this.ctx.currentTime + idx * 0.04);
-        osc.stop(this.ctx.currentTime + idx * 0.04 + 0.12);
+        osc.start(this.ctx.currentTime + idx * 0.05);
+        osc.stop(this.ctx.currentTime + idx * 0.05 + 0.14);
       });
 
-      // Low frequency punch
-      const noiseBuffer = this.ctx.createBuffer(1, this.ctx.sampleRate * 0.15, this.ctx.sampleRate);
+      // Punchy bass impact
+      const noiseBuffer = this.ctx.createBuffer(1, this.ctx.sampleRate * 0.18, this.ctx.sampleRate);
       const output = noiseBuffer.getChannelData(0);
       for (let i = 0; i < noiseBuffer.length; i++) {
         output[i] = Math.random() * 2 - 1;
@@ -155,12 +159,12 @@ class SoundManager {
       noise.buffer = noiseBuffer;
       const filter = this.ctx.createBiquadFilter();
       filter.type = 'lowpass';
-      filter.frequency.setValueAtTime(600, this.ctx.currentTime);
-      filter.frequency.exponentialRampToValueAtTime(80, this.ctx.currentTime + 0.15);
+      filter.frequency.setValueAtTime(800, this.ctx.currentTime);
+      filter.frequency.exponentialRampToValueAtTime(90, this.ctx.currentTime + 0.18);
 
       const gain = this.ctx.createGain();
-      gain.gain.setValueAtTime(0.4, this.ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.15);
+      gain.gain.setValueAtTime(0.5, this.ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.18);
 
       noise.connect(filter);
       filter.connect(gain);
