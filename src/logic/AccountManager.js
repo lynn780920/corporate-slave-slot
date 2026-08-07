@@ -94,7 +94,9 @@ export class AccountManager {
   updateBalance(newBalance) {
     if (this.currentUser) {
       this.currentUser.balance = newBalance;
+      this.currentUser.totalSpins = (this.currentUser.totalSpins || 0) + 1;
       this.users[this.currentUser.username].balance = newBalance;
+      this.users[this.currentUser.username].totalSpins = this.currentUser.totalSpins;
       this.saveUsers();
     }
   }

@@ -42,9 +42,9 @@ export class SlotEngine {
     this.cols = 6;
     this.rows = 5;
 
-    // Strictly enforce starting balance $2,000
+    // Default starting balance $2,000 for new user, otherwise load saved balance
     const userBal = accountManager.currentUser ? accountManager.currentUser.balance : 2000;
-    this.balance = userBal > 2000 ? 2000 : userBal;
+    this.balance = userBal;
 
     // Strictly Minimum bet $2, Maximum bet $30
     this.betSizes = [2, 5, 10, 15, 20, 25, 30];
@@ -70,7 +70,7 @@ export class SlotEngine {
 
   syncBalanceWithAccount() {
     if (accountManager.currentUser) {
-      this.balance = accountManager.currentUser.balance > 2000 ? 2000 : accountManager.currentUser.balance;
+      this.balance = accountManager.currentUser.balance;
     }
   }
 

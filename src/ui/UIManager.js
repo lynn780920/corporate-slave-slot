@@ -232,10 +232,6 @@ export class UIManager {
   }
 
   updateDisplay() {
-    // Force clamp balance to $2,000 if initial
-    if (this.engine.balance > 2000 && !accountManager.currentUser?.totalSpins) {
-      this.engine.balance = 2000;
-    }
     this.engine.saveAccountBalance();
 
     if (this.elUsername && accountManager.currentUser) {
