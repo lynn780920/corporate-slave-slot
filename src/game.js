@@ -44,10 +44,13 @@ class GameApp {
     this.floatingTexts = [];
     this.cellShockwaves = [];
     this.fsCoins = [];
+    this.fsBills = [];
+    this.fsPets = [];
 
     this.bigWinMode = false;
     this.bigWinTarget = 0;
     this.bigWinCurrent = 0;
+    this.bigWinTier = 1; // Tier 1 (<20x), Tier 2 (20x-40x), Tier 3 (>=40x)
     this.sunburstAngle = 0;
 
     this.shakeOffsetX = 0;
@@ -191,19 +194,35 @@ class GameApp {
     shakeInterval();
   }
 
+  // Tiered Big Win Celebration Engine (Tier 1: <20x Gold Coins, Tier 2: 20x-40x Pets Counting Money, Tier 3: >=40x Flying Cash & Party)
   triggerFullscreenBigWin(winAmount) {
-    const validWin = Math.max(winAmount || 0, this.engine.getBet() * 20);
+    const bet = this.engine.getBet();
+    const winMult = winAmount / bet;
+    const validWin = Math.max(winAmount || 0, bet * 20);
+
+    if (winMult >= 40) {
+      this.bigWinTier = 3;
+    } else if (winMult >= 20) {
+      this.bigWinTier = 2;
+    } else {
+      this.bigWinTier = 1;
+    }
+
     this.bigWinMode = true;
     this.bigWinTarget = validWin;
     this.bigWinCurrent = 0;
     this.fsCoins = [];
+    this.fsBills = [];
+    this.fsPets = [];
 
-    this.uiManager.showBigWinModal(validWin);
+    this.uiManager.showBigWinModal(validWin, this.bigWinTier);
 
     const sw = window.innerWidth;
     const sh = window.innerHeight;
 
-    for (let i = 0; i < 600; i++) {
+    // 1. Raining 3D Coins
+    const coinCount = this.bigWinTier === 3 ? 600 : (this.bigWinTier === 2 ? 450 : 300);
+    for (let i = 0; i < coinCount; i++) {
       this.fsCoins.push({
         x: Math.random() * sw,
         y: -50 - Math.random() * 800,
@@ -217,10 +236,44 @@ class GameApp {
       });
     }
 
-    this.triggerShake(25, 45);
+    // 2. Flying $100 Cash Bills for Tier 3
+    if (this.bigWinTier === 3) {
+      for (let i = 0; i < 120; i++) {
+        this.fsBills.push({
+          x: Math.random() * sw,
+          y: -50 - Math.random() * 1000,
+          vx: (Math.random() - 0.5) * 6,
+          vy: 4 + Math.random() * 10,
+          rotation: Math.random() * Math.PI * 2,
+          rotSpeed: (Math.random() - 0.5) * 0.2,
+          w: 50 + Math.random() * 30,
+          h: 25 + Math.random() * 15
+        });
+      }
+    }
+
+    // 3. Floating Pets Counting Money for Tier 2 & Tier 3
+    if (this.bigWinTier >= 2) {
+      const petImages = ['eye', 'scepter', 'bow', 'sword', 'gem_orange', 'gem_red', 'gem_purple', 'gem_blue', 'gem_green'];
+      const petPhrases = ['「年終爆滿!」', '「爽領大獎!」', '「數錢數到抽筋!」', '「貓狗發大財!」', '「不用加班啦!」'];
+
+      for (let i = 0; i < (this.bigWinTier === 3 ? 10 : 6); i++) {
+        this.fsPets.push({
+          x: 80 + Math.random() * (sw - 160),
+          y: sh + 100 + i * 140,
+          vy: -2 - Math.random() * 2.5,
+          scale: 0.8 + Math.random() * 0.5,
+          imgKey: petImages[i % petImages.length],
+          phrase: petPhrases[i % petPhrases.length],
+          bobOffset: Math.random() * 10
+        });
+      }
+    }
+
+    this.triggerShake(this.bigWinTier * 10 + 10, 45);
 
     return new Promise((resolve) => {
-      const durationMs = 3200;
+      const durationMs = this.bigWinTier === 3 ? 4200 : (this.bigWinTier === 2 ? 3500 : 3000);
       const startTime = performance.now();
 
       const step = (now) => {
@@ -250,7 +303,7 @@ class GameApp {
     const dt = timestamp - this.lastTime;
     this.lastTime = timestamp;
     this.globalTime += 0.03;
-    this.sunburstAngle += 0.012;
+    this.sunburstAngle += this.bigWinTier === 3 ? 0.025 : 0.012;
 
     if (this.ctx) {
       this.drawMainScene();
@@ -513,12 +566,12 @@ class GameApp {
     ctx.save();
     ctx.clearRect(0, 0, w, h);
 
-    // Rotating Sunburst Light Rays
+    // 1. Rotating Sunburst Light Rays
     ctx.save();
     ctx.translate(cx, cy);
     ctx.rotate(this.sunburstAngle);
-    const numRays = 20;
-    ctx.fillStyle = 'rgba(245, 158, 11, 0.18)';
+    const numRays = this.bigWinTier === 3 ? 24 : 16;
+    ctx.fillStyle = this.bigWinTier === 3 ? 'rgba(236, 72, 153, 0.22)' : 'rgba(245, 158, 11, 0.18)';
     const rayLength = Math.max(w, h) * 1.5;
     for (let i = 0; i < numRays; i++) {
       ctx.beginPath();
@@ -529,7 +582,7 @@ class GameApp {
     }
     ctx.restore();
 
-    // Raining 3D Coins
+    // 2. Raining 3D Gold Coins
     for (let i = 0; i < this.fsCoins.length; i++) {
       const coin = this.fsCoins[i];
       coin.y += coin.vy;
@@ -554,6 +607,72 @@ class GameApp {
       ctx.fill();
       ctx.stroke();
       ctx.restore();
+    }
+
+    // 3. Flying $100 Cash Bills for Tier 3 (Win >= 40x)
+    if (this.bigWinTier === 3) {
+      for (let i = 0; i < this.fsBills.length; i++) {
+        const b = this.fsBills[i];
+        b.y += b.vy;
+        b.x += b.vx + Math.sin(this.globalTime * 3 + i) * 1.5;
+        b.rotation += b.rotSpeed;
+
+        if (b.y > h + 50) {
+          b.y = -40;
+          b.x = Math.random() * w;
+        }
+
+        ctx.save();
+        ctx.translate(b.x, b.y);
+        ctx.rotate(b.rotation);
+
+        ctx.fillStyle = '#16a34a'; ctx.strokeStyle = '#86efac'; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.roundRect(-b.w / 2, -b.h / 2, b.w, b.h, 4); ctx.fill(); ctx.stroke();
+        ctx.font = '900 12px Outfit, sans-serif'; ctx.fillStyle = '#ffffff'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText('$100', 0, 0);
+
+        ctx.restore();
+      }
+    }
+
+    // 4. Floating Working Pets (Cats & Dogs) Counting Money & Celebrating (Tier 2 & Tier 3)
+    if (this.bigWinTier >= 2) {
+      for (let i = 0; i < this.fsPets.length; i++) {
+        const pet = this.fsPets[i];
+        pet.y += pet.vy;
+        if (pet.y < -120) {
+          pet.y = h + 100;
+          pet.x = 80 + Math.random() * (w - 160);
+        }
+
+        const floatX = pet.x + Math.sin(this.globalTime * 2 + pet.bobOffset) * 20;
+
+        ctx.save();
+        ctx.translate(floatX, pet.y);
+        ctx.scale(pet.scale, pet.scale);
+
+        // Pet Image Avatar
+        const img = this.loadedImages[pet.imgKey];
+        if (img) {
+          ctx.shadowColor = '#f59e0b';
+          ctx.shadowBlur = 20;
+          ctx.drawImage(img, -45, -45, 90, 90);
+          ctx.shadowBlur = 0;
+        }
+
+        // Phrase Ribbon Text Badge
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
+        ctx.strokeStyle = '#fde047';
+        ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.roundRect(-60, 48, 120, 28, 8); ctx.fill(); ctx.stroke();
+
+        ctx.font = '900 12px Outfit, sans-serif';
+        ctx.fillStyle = '#fde047';
+        ctx.textAlign = 'center';
+        ctx.fillText(pet.phrase, 0, 64);
+
+        ctx.restore();
+      }
     }
 
     ctx.restore();

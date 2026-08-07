@@ -269,11 +269,13 @@ export class UIManager {
     }
   }
 
-  showBigWinModal(winAmount) {
-    let title = 'BIG WIN!';
-    const bet = this.engine.getBet();
-    if (winAmount >= bet * 100) title = 'SUPER MEGA WIN!';
-    else if (winAmount >= bet * 50) title = 'MEGA WIN!';
+  showBigWinModal(winAmount, tier = 1) {
+    let title = 'BIG WIN! 💰 金幣滿屋';
+    if (tier === 3) {
+      title = 'SUPER MEGA WIN! 🐱🐶 貓狗暴富狂歡';
+    } else if (tier === 2) {
+      title = 'MEGA WIN! 🐾 貓狗開心數錢';
+    }
 
     if (this.elFsBigWinTitle) this.elFsBigWinTitle.textContent = title;
     if (this.elFsBigWinAmount) this.elFsBigWinAmount.textContent = `$${winAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
