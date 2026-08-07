@@ -1211,15 +1211,27 @@ class GameApp {
       if (!this.engine.isFreeSpins) {
         this.engine.balance -= bet;
         this.uiManager.setWinAmount(0);
-        if (this.engine.lockedMultiplierSpins > 0 && this.engine.lockedMultiplierVal > 0) {
-          this.uiManager.setMultiplierDisplay(`🔒 ${this.engine.lockedMultiplierVal}x (${this.engine.lockedMultiplierSpins}局)`);
+        if (this.engine.lockedMultiplierSpins > 0) {
+          this.engine.lockedMultiplierSpins--;
+          if (this.engine.lockedMultiplierSpins === 0) {
+            this.engine.lockedMultiplierVal = 0;
+            this.uiManager.setMultiplierDisplay(1);
+          } else {
+            this.uiManager.setMultiplierDisplay(`🔒 ${this.engine.lockedMultiplierVal}x (${this.engine.lockedMultiplierSpins}局)`);
+          }
         } else {
           this.uiManager.setMultiplierDisplay(1);
         }
       } else {
         this.engine.freeSpinsRemaining--;
-        if (this.engine.lockedMultiplierSpins > 0 && this.engine.lockedMultiplierVal > 0) {
-          this.uiManager.setMultiplierDisplay(`🔒 ${this.engine.lockedMultiplierVal}x (${this.engine.lockedMultiplierSpins}局)`);
+        if (this.engine.lockedMultiplierSpins > 0) {
+          this.engine.lockedMultiplierSpins--;
+          if (this.engine.lockedMultiplierSpins === 0) {
+            this.engine.lockedMultiplierVal = 0;
+            this.uiManager.setMultiplierDisplay(Math.max(1, this.engine.globalMultiplierPool));
+          } else {
+            this.uiManager.setMultiplierDisplay(`🔒 ${this.engine.lockedMultiplierVal}x (${this.engine.lockedMultiplierSpins}局)`);
+          }
         } else {
           this.uiManager.setMultiplierDisplay(Math.max(1, this.engine.globalMultiplierPool));
         }
@@ -1392,7 +1404,7 @@ class GameApp {
       for (const group of evalResult.winningGroups) {
         if (group.type === SYMBOLS.GOD_MALE && group.count >= 6) {
           // 6 個以上貓皇即可觸發覺醒極速狂點與倍數鎖定 (鎖定 3 局)
-          this.engine.lockedMultiplierSpins = 4;
+          this.engine.lockedMultiplierSpins = 3;
           const currentOrbs = this.engine.getMultiplierOrbs();
           const currentOrbsSum = currentOrbs.reduce((sum, o) => sum + o.val, 0);
 
@@ -1474,14 +1486,6 @@ class GameApp {
 
     if (this.engine.lockedMultiplierSpins > 0 && this.engine.lockedMultiplierVal > 0) {
       finalTotalMultiplier = Math.max(finalTotalMultiplier, this.engine.lockedMultiplierVal);
-    }
-
-    if (this.engine.lockedMultiplierSpins > 0) {
-      this.engine.lockedMultiplierSpins--;
-      if (this.engine.lockedMultiplierSpins <= 0) {
-        this.engine.lockedMultiplierSpins = 0;
-        this.engine.lockedMultiplierVal = 0; // 歸零重置鎖定倍率，嚴格確保只鎖定 3 局！
-      }
     }
 
     if (this.engine.lockedMultiplierSpins > 0 && this.engine.lockedMultiplierVal > 0) {
