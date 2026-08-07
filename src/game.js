@@ -335,10 +335,9 @@ class GameApp {
       return;
     }
 
-    this.isTargetingTreat = true;
-    const banner = document.getElementById('treat-prompt-banner');
-    if (banner) banner.classList.remove('hidden');
+    // 點擊按鈕直接往盤面中央 (2, 2) 砸下 50x 貓草罐頭爆發！
     soundManager.playBigWin();
+    this.executeCatTreatToss(2, 2);
   }
 
   onCanvasClicked(e) {
@@ -1330,16 +1329,16 @@ class GameApp {
       let godMaleTriggered = false;
 
       for (const group of evalResult.winningGroups) {
-        if (group.type === SYMBOLS.GOD_MALE) {
-          // 鎖定 3 局倍率 + 倍數球 2 倍翻倍
+        if (group.type === SYMBOLS.GOD_MALE && group.count >= 8) {
+          // 嚴格 8 個以上貓皇才觸發覺醒 (鎖定 3 局倍率 + 倍數球 2 倍翻倍)
           this.engine.lockedMultiplierSpins = 4;
           const currentOrbs = this.engine.getMultiplierOrbs();
           const currentOrbsSum = currentOrbs.reduce((sum, o) => sum + o.val, 0);
 
           if (this.engine.lockedMultiplierVal > 0) {
-            this.engine.lockedMultiplierVal *= 2;
+            this.engine.lockedMultiplierVal = Math.min(500, this.engine.lockedMultiplierVal * 2);
           } else {
-            this.engine.lockedMultiplierVal = Math.max(currentOrbsSum * 2, 20);
+            this.engine.lockedMultiplierVal = Math.min(500, Math.max(currentOrbsSum * 2, 20));
           }
 
           // Double all multiplier orbs on grid
@@ -1433,7 +1432,7 @@ class GameApp {
       await this.triggerFullscreenBigWin(finalSpinPayout);
     }
 
-    if (finalSpinPayout >= this.engine.getBet() * 50) {
+    if (finalSpinPayout >= this.engine.getBet() * 3) {
       await this.triggerGambleModal(finalSpinPayout);
     }
 
