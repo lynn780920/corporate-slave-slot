@@ -34,6 +34,8 @@ class GameApp {
     }
 
     this.isSpinning = false;
+    this.loadedImages = {};
+    this.preloadAssets();
 
     // Visual FX States
     this.particles = [];
@@ -81,6 +83,23 @@ class GameApp {
 
     this.lastTime = performance.now();
     requestAnimationFrame((t) => this.renderLoop(t));
+  }
+
+  preloadAssets() {
+    const assetList = [
+      'eye', 'scepter', 'bow', 'sword', 
+      'gem_orange', 'gem_red', 'gem_purple', 'gem_blue', 'gem_green',
+      'scatter', 'god_male', 'god_female', 
+      'multiplier', 'mult_green', 'mult_blue', 'mult_purple', 'bg_gods'
+    ];
+
+    assetList.forEach(name => {
+      const img = new Image();
+      img.src = `/assets/${name}.png`;
+      img.onload = () => {
+        this.loadedImages[name] = img;
+      };
+    });
   }
 
   onResize() {
@@ -240,339 +259,6 @@ class GameApp {
     requestAnimationFrame((t) => this.renderLoop(t));
   }
 
-  // Pure 2D Canvas Procedural Vector Rendering Engine for 100% Unique Working Pet Symbols
-  drawProceduralSymbol(ctx, type, size, multVal = 0) {
-    const r = size / 2;
-
-    ctx.save();
-
-    switch (type) {
-      // 1. 🐱 貓貓總裁 (Cat CEO)
-      case SYMBOLS.EYE: {
-        // Gold Outer Badge Frame
-        ctx.fillStyle = '#1e1b4b';
-        ctx.strokeStyle = '#f59e0b';
-        ctx.lineWidth = 5;
-        ctx.beginPath();
-        ctx.arc(0, 0, r - 4, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.stroke();
-
-        // Cat Ears
-        ctx.fillStyle = '#f59e0b';
-        ctx.beginPath();
-        ctx.moveTo(-24, -12); ctx.lineTo(-34, -36); ctx.lineTo(-8, -24); ctx.closePath(); ctx.fill();
-        ctx.beginPath();
-        ctx.moveTo(24, -12); ctx.lineTo(34, -36); ctx.lineTo(8, -24); ctx.closePath(); ctx.fill();
-
-        // Cat Head
-        ctx.fillStyle = '#fbbf24';
-        ctx.beginPath(); ctx.arc(0, 4, 26, 0, Math.PI * 2); ctx.fill();
-
-        // Crown
-        ctx.fillStyle = '#fde047';
-        ctx.beginPath();
-        ctx.moveTo(-16, -20); ctx.lineTo(-20, -38); ctx.lineTo(-6, -26);
-        ctx.lineTo(0, -42); ctx.lineTo(6, -26); ctx.lineTo(20, -38); ctx.lineTo(16, -20);
-        ctx.closePath(); ctx.fill();
-
-        // Eyes & Nose
-        ctx.fillStyle = '#10b981';
-        ctx.beginPath(); ctx.arc(-10, -2, 6, 0, Math.PI * 2); ctx.arc(10, -2, 6, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = '#000';
-        ctx.beginPath(); ctx.arc(-10, -2, 2, 0, Math.PI * 2); ctx.arc(10, -2, 2, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = '#f472b6';
-        ctx.beginPath(); ctx.arc(0, 6, 3, 0, Math.PI * 2); ctx.fill();
-
-        // Text Badge
-        ctx.font = '900 13px Outfit, sans-serif'; ctx.fillStyle = '#fde047'; ctx.textAlign = 'center';
-        ctx.fillText('貓總裁', 0, 26);
-        break;
-      }
-
-      // 2. 🐕 柴犬 HR (Shiba HR)
-      case SYMBOLS.SCEPTER: {
-        ctx.fillStyle = '#312e81';
-        ctx.strokeStyle = '#ef4444';
-        ctx.lineWidth = 5;
-        ctx.beginPath(); ctx.arc(0, 0, r - 4, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-
-        // Shiba Ears
-        ctx.fillStyle = '#d97706';
-        ctx.beginPath(); ctx.moveTo(-22, -10); ctx.lineTo(-32, -34); ctx.lineTo(-6, -22); ctx.closePath(); ctx.fill();
-        ctx.beginPath(); ctx.moveTo(22, -10); ctx.lineTo(32, -34); ctx.lineTo(6, -22); ctx.closePath(); ctx.fill();
-
-        // Shiba Head
-        ctx.fillStyle = '#f59e0b';
-        ctx.beginPath(); ctx.arc(0, 2, 26, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = '#fef08a';
-        ctx.beginPath(); ctx.arc(0, 10, 16, 0, Math.PI * 2); ctx.fill();
-
-        // Eyes & Nose
-        ctx.fillStyle = '#000';
-        ctx.beginPath(); ctx.arc(-10, -4, 4, 0, Math.PI * 2); ctx.arc(10, -4, 4, 0, Math.PI * 2); ctx.arc(0, 6, 4, 0, Math.PI * 2); ctx.fill();
-
-        // Red Corporate Tie
-        ctx.fillStyle = '#ef4444';
-        ctx.beginPath(); ctx.moveTo(-6, 18); ctx.lineTo(6, 18); ctx.lineTo(9, 32); ctx.lineTo(0, 38); ctx.lineTo(-9, 32); ctx.closePath(); ctx.fill();
-
-        ctx.font = '900 13px Outfit, sans-serif'; ctx.fillStyle = '#fef08a'; ctx.textAlign = 'center';
-        ctx.fillText('柴犬HR', 0, 27);
-        break;
-      }
-
-      // 3. 🐶 柯基會計 (Corgi Accountant)
-      case SYMBOLS.BOW: {
-        ctx.fillStyle = '#1e293b';
-        ctx.strokeStyle = '#3b82f6';
-        ctx.lineWidth = 5;
-        ctx.beginPath(); ctx.arc(0, 0, r - 4, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-
-        // Big Corgi Ears
-        ctx.fillStyle = '#f59e0b';
-        ctx.beginPath(); ctx.ellipse(-24, -20, 10, 20, -0.3, 0, Math.PI * 2); ctx.fill();
-        ctx.beginPath(); ctx.ellipse(24, -20, 10, 20, 0.3, 0, Math.PI * 2); ctx.fill();
-
-        // Head
-        ctx.fillStyle = '#fbbf24';
-        ctx.beginPath(); ctx.arc(0, 4, 25, 0, Math.PI * 2); ctx.fill();
-
-        // Glasses
-        ctx.strokeStyle = '#fde047'; ctx.lineWidth = 3;
-        ctx.beginPath(); ctx.arc(-11, 0, 9, 0, Math.PI * 2); ctx.stroke();
-        ctx.beginPath(); ctx.arc(11, 0, 9, 0, Math.PI * 2); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(-2, 0); ctx.lineTo(2, 0); ctx.stroke();
-
-        ctx.fillStyle = '#000';
-        ctx.beginPath(); ctx.arc(-11, 0, 3, 0, Math.PI * 2); ctx.arc(11, 0, 3, 0, Math.PI * 2); ctx.arc(0, 10, 3, 0, Math.PI * 2); ctx.fill();
-
-        ctx.font = '900 13px Outfit, sans-serif'; ctx.fillStyle = '#93c5fd'; ctx.textAlign = 'center';
-        ctx.fillText('柯基會計', 0, 28);
-        break;
-      }
-
-      // 4. 🐶 法鬥碼農 (Frenchie Dev)
-      case SYMBOLS.SWORD: {
-        ctx.fillStyle = '#0f172a';
-        ctx.strokeStyle = '#a855f7';
-        ctx.lineWidth = 5;
-        ctx.beginPath(); ctx.arc(0, 0, r - 4, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-
-        // Bat Ears
-        ctx.fillStyle = '#64748b';
-        ctx.beginPath(); ctx.ellipse(-24, -18, 11, 22, -0.2, 0, Math.PI * 2); ctx.fill();
-        ctx.beginPath(); ctx.ellipse(24, -18, 11, 22, 0.2, 0, Math.PI * 2); ctx.fill();
-
-        // Head
-        ctx.fillStyle = '#94a3b8';
-        ctx.beginPath(); ctx.arc(0, 4, 25, 0, Math.PI * 2); ctx.fill();
-
-        // DJ Headphones
-        ctx.strokeStyle = '#ec4899'; ctx.lineWidth = 6;
-        ctx.beginPath(); ctx.arc(0, 0, 28, Math.PI * 1.1, Math.PI * 1.9); ctx.stroke();
-        ctx.fillStyle = '#ec4899';
-        ctx.beginPath(); ctx.arc(-26, 4, 8, 0, Math.PI * 2); ctx.arc(26, 4, 8, 0, Math.PI * 2); ctx.fill();
-
-        ctx.fillStyle = '#000';
-        ctx.beginPath(); ctx.arc(-9, 0, 4, 0, Math.PI * 2); ctx.arc(9, 0, 4, 0, Math.PI * 2); ctx.arc(0, 10, 4, 0, Math.PI * 2); ctx.fill();
-
-        ctx.font = '900 13px Outfit, sans-serif'; ctx.fillStyle = '#f5d0fe'; ctx.textAlign = 'center';
-        ctx.fillText('法鬥碼農', 0, 28);
-        break;
-      }
-
-      // 5. 🐕 金毛業務 (Golden Sales)
-      case SYMBOLS.GEM_ORANGE: {
-        ctx.fillStyle = '#451a03';
-        ctx.strokeStyle = '#f59e0b';
-        ctx.lineWidth = 5;
-        ctx.beginPath();
-        ctx.moveTo(0, -r + 6); ctx.lineTo(r - 6, 0); ctx.lineTo(0, r - 6); ctx.lineTo(-r + 6, 0); ctx.closePath();
-        ctx.fill(); ctx.stroke();
-
-        ctx.fillStyle = '#eab308';
-        ctx.beginPath(); ctx.arc(0, 0, 22, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = '#000';
-        ctx.beginPath(); ctx.arc(-8, -4, 3, 0, Math.PI * 2); ctx.arc(8, -4, 3, 0, Math.PI * 2); ctx.arc(0, 4, 3, 0, Math.PI * 2); ctx.fill();
-
-        ctx.font = '900 12px Outfit, sans-serif'; ctx.fillStyle = '#fde047'; ctx.textAlign = 'center';
-        ctx.fillText('金毛業務', 0, 22);
-        break;
-      }
-
-      // 6. 🐶 巴哥加班犬 (Pug Overtime)
-      case SYMBOLS.GEM_RED: {
-        ctx.fillStyle = '#450a0a';
-        ctx.strokeStyle = '#ef4444';
-        ctx.lineWidth = 5;
-        ctx.beginPath(); ctx.arc(0, 0, r - 6, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-
-        ctx.fillStyle = '#b45309';
-        ctx.beginPath(); ctx.arc(0, 0, 22, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = '#78350f';
-        ctx.beginPath(); ctx.arc(0, 6, 12, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = '#000';
-        ctx.beginPath(); ctx.arc(-8, -4, 3, 0, Math.PI * 2); ctx.arc(8, -4, 3, 0, Math.PI * 2); ctx.arc(0, 4, 3, 0, Math.PI * 2); ctx.fill();
-
-        ctx.font = '900 11px Outfit, sans-serif'; ctx.fillStyle = '#fca5a5'; ctx.textAlign = 'center';
-        ctx.fillText('巴哥加班犬', 0, 22);
-        break;
-      }
-
-      // 7. 🐱 花貓實習生 (Calico Intern)
-      case SYMBOLS.GEM_PURPLE: {
-        ctx.fillStyle = '#3b0764';
-        ctx.strokeStyle = '#a855f7';
-        ctx.lineWidth = 5;
-        ctx.beginPath(); ctx.arc(0, 0, r - 6, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-
-        ctx.fillStyle = '#fb923c';
-        ctx.beginPath(); ctx.arc(0, 0, 22, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = '#000';
-        ctx.beginPath(); ctx.arc(-8, -4, 3, 0, Math.PI * 2); ctx.arc(8, -4, 3, 0, Math.PI * 2); ctx.fill();
-
-        ctx.font = '900 11px Outfit, sans-serif'; ctx.fillStyle = '#f5d0fe'; ctx.textAlign = 'center';
-        ctx.fillText('花貓實習生', 0, 22);
-        break;
-      }
-
-      // 8. 🐱 英短設計 (Blue Cat Designer)
-      case SYMBOLS.GEM_BLUE: {
-        ctx.fillStyle = '#172554';
-        ctx.strokeStyle = '#3b82f6';
-        ctx.lineWidth = 5;
-        ctx.beginPath(); ctx.arc(0, 0, r - 6, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-
-        ctx.fillStyle = '#94a3b8';
-        ctx.beginPath(); ctx.arc(0, 0, 22, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = '#000';
-        ctx.beginPath(); ctx.arc(-8, -4, 3, 0, Math.PI * 2); ctx.arc(8, -4, 3, 0, Math.PI * 2); ctx.fill();
-
-        ctx.font = '900 12px Outfit, sans-serif'; ctx.fillStyle = '#93c5fd'; ctx.textAlign = 'center';
-        ctx.fillText('英短設計', 0, 22);
-        break;
-      }
-
-      // 9. 🐱 橘貓客服 (Tabby CS)
-      case SYMBOLS.GEM_GREEN: {
-        ctx.fillStyle = '#064e3b';
-        ctx.strokeStyle = '#10b981';
-        ctx.lineWidth = 5;
-        ctx.beginPath(); ctx.arc(0, 0, r - 6, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-
-        ctx.fillStyle = '#f97316';
-        ctx.beginPath(); ctx.arc(0, 0, 22, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = '#000';
-        ctx.beginPath(); ctx.arc(-8, -4, 3, 0, Math.PI * 2); ctx.arc(8, -4, 3, 0, Math.PI * 2); ctx.fill();
-
-        ctx.font = '900 12px Outfit, sans-serif'; ctx.fillStyle = '#a7f3d0'; ctx.textAlign = 'center';
-        ctx.fillText('橘貓客服', 0, 22);
-        break;
-      }
-
-      // 10. 🐾 特休 SCATTER 筆電
-      case SYMBOLS.SCATTER: {
-        ctx.fillStyle = '#581c87';
-        ctx.strokeStyle = '#f59e0b';
-        ctx.lineWidth = 5;
-        ctx.beginPath(); ctx.arc(0, 0, r - 4, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-
-        // Silver Laptop Screen
-        ctx.fillStyle = '#0f172a'; ctx.strokeStyle = '#fde047'; ctx.lineWidth = 3;
-        ctx.beginPath(); ctx.roundRect(-24, -24, 48, 30, 4); ctx.fill(); ctx.stroke();
-
-        // Base
-        ctx.fillStyle = '#d97706';
-        ctx.beginPath(); ctx.roundRect(-30, 6, 60, 8, 3); ctx.fill();
-
-        // Paw print on screen
-        ctx.fillStyle = '#f472b6';
-        ctx.beginPath(); ctx.arc(0, -8, 5, 0, Math.PI * 2); ctx.fill();
-        ctx.beginPath(); ctx.arc(-6, -14, 2.5, 0, Math.PI * 2); ctx.arc(6, -14, 2.5, 0, Math.PI * 2); ctx.fill();
-
-        // Gold Badge
-        ctx.fillStyle = '#b45309'; ctx.strokeStyle = '#fde047'; ctx.lineWidth = 2;
-        ctx.beginPath(); ctx.roundRect(-32, 16, 64, 18, 5); ctx.fill(); ctx.stroke();
-        ctx.font = '900 11px Outfit, sans-serif'; ctx.fillStyle = '#fde047'; ctx.textAlign = 'center';
-        ctx.fillText('特休SCATTER', 0, 29);
-        break;
-      }
-
-      // 11. 👑 貓神總裁覺醒
-      case SYMBOLS.GOD_MALE: {
-        ctx.fillStyle = '#7f1d1d';
-        ctx.strokeStyle = '#f59e0b';
-        ctx.lineWidth = 5;
-        ctx.beginPath(); ctx.roundRect(-r + 4, -r + 4, size - 8, size - 8, 12); ctx.fill(); ctx.stroke();
-
-        ctx.font = '900 36px Outfit, sans-serif'; ctx.textAlign = 'center';
-        ctx.fillText('👑🐱', 0, -6);
-        ctx.font = '900 13px Outfit, sans-serif'; ctx.fillStyle = '#fde047';
-        ctx.fillText('貓神覺醒', 0, 26);
-        break;
-      }
-
-      // 12. 👑 犬神 HR 覺醒
-      case SYMBOLS.GOD_FEMALE: {
-        ctx.fillStyle = '#3b0764';
-        ctx.strokeStyle = '#f59e0b';
-        ctx.lineWidth = 5;
-        ctx.beginPath(); ctx.roundRect(-r + 4, -r + 4, size - 8, size - 8, 12); ctx.fill(); ctx.stroke();
-
-        ctx.font = '900 36px Outfit, sans-serif'; ctx.textAlign = 'center';
-        ctx.fillText('👑🐕', 0, -6);
-        ctx.font = '900 13px Outfit, sans-serif'; ctx.fillStyle = '#fde047';
-        ctx.fillText('犬神覺醒', 0, 26);
-        break;
-      }
-
-      // 13. 🐾 貓爪 3D 加倍寶珠
-      case SYMBOLS.MULTIPLIER: {
-        let orbBg = '#064e3b';
-        let orbRim = '#10b981';
-        if (multVal >= 100) { orbBg = '#78350f'; orbRim = '#f59e0b'; }
-        else if (multVal >= 20) { orbBg = '#3b0764'; orbRim = '#a855f7'; }
-        else if (multVal >= 8) { orbBg = '#172554'; orbRim = '#3b82f6'; }
-
-        // Glowing 3D Sphere Base
-        ctx.fillStyle = orbBg;
-        ctx.strokeStyle = orbRim;
-        ctx.lineWidth = 6;
-        ctx.beginPath(); ctx.arc(0, 0, r - 4, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-
-        // Inner Core Ring
-        ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 3;
-        ctx.beginPath(); ctx.arc(0, 0, r - 12, 0, Math.PI * 2); ctx.stroke();
-
-        // 3D Dark Gold Ribbon Badge Bar
-        ctx.fillStyle = 'rgba(5, 3, 10, 0.88)';
-        ctx.strokeStyle = '#fde047';
-        ctx.lineWidth = 3;
-        ctx.beginPath(); ctx.roundRect(-38, -22, 76, 44, 10); ctx.fill(); ctx.stroke();
-
-        // MASSIVE ENORMOUS MULTIPLIER TEXT (46px)
-        ctx.font = '900 44px Outfit, Cinzel, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-
-        // Thick Black Stroke
-        ctx.strokeStyle = '#000000';
-        ctx.lineWidth = 8;
-        ctx.strokeText(`${multVal}x`, 0, 1);
-
-        // Bright Golden Yellow Fill
-        ctx.fillStyle = '#fde047';
-        ctx.shadowColor = '#f59e0b';
-        ctx.shadowBlur = 14;
-        ctx.fillText(`${multVal}x`, 0, 1);
-        ctx.shadowBlur = 0;
-        break;
-      }
-    }
-
-    ctx.restore();
-  }
-
   drawMainScene() {
     const ctx = this.ctx;
     const w = this.gridWidth;
@@ -582,9 +268,12 @@ class GameApp {
     ctx.clearRect(0, 0, w, h);
     ctx.translate(this.shakeOffsetX, this.shakeOffsetY);
 
-    // Deep Dark Temple Wallpaper Background
-    ctx.fillStyle = '#090614';
-    ctx.fillRect(0, 0, w, h);
+    if (this.loadedImages['bg_gods']) {
+      ctx.drawImage(this.loadedImages['bg_gods'], 0, 0, w, h);
+    } else {
+      ctx.fillStyle = '#07050b';
+      ctx.fillRect(0, 0, w, h);
+    }
 
     // Ambient Torch Embers
     for (let i = 0; i < this.ambientEmbers.length; i++) {
@@ -603,7 +292,7 @@ class GameApp {
     }
     ctx.globalAlpha = 1.0;
 
-    // Ornate Gold Border Frame
+    // Ornate Border Frame
     ctx.strokeStyle = '#d97706';
     ctx.lineWidth = 4;
     ctx.shadowColor = '#f59e0b';
@@ -611,7 +300,7 @@ class GameApp {
     ctx.strokeRect(3, 3, w - 6, h - 6);
     ctx.shadowBlur = 0;
 
-    // 6x5 Grid Cells & Procedural Canvas Symbol Vector Graphics
+    // 6x5 Grid Cells & Render PNG Symbols Cropped from User Screenshot
     for (let c = 0; c < this.cols; c++) {
       for (let r = 0; r < this.rows; r++) {
         const x = c * (this.cellSize + this.cellGap) + this.cellGap;
@@ -650,8 +339,28 @@ class GameApp {
           ctx.rotate(state.rotation);
           ctx.globalAlpha = state.alpha;
 
-          // Draw 100% Unique Procedural Canvas Vector Symbol
-          this.drawProceduralSymbol(ctx, sym.type, this.cellSize, sym.multiplierVal);
+          const img = this.loadedImages[sym.type];
+          if (img) {
+            const drawSize = this.cellSize * 0.92;
+            ctx.drawImage(img, -drawSize / 2, -drawSize / 2, drawSize, drawSize);
+          }
+
+          // Overlay Multiplier Value Text on Multiplier Orbs
+          if (sym.type === SYMBOLS.MULTIPLIER) {
+            ctx.font = '900 36px Outfit, Cinzel, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 8;
+            ctx.strokeText(`${sym.multiplierVal}x`, 0, 1);
+
+            ctx.fillStyle = '#fde047';
+            ctx.shadowColor = '#f59e0b';
+            ctx.shadowBlur = 14;
+            ctx.fillText(`${sym.multiplierVal}x`, 0, 1);
+            ctx.shadowBlur = 0;
+          }
 
           ctx.restore();
         }
