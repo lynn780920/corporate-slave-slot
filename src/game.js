@@ -251,7 +251,7 @@ class GameApp {
           ctx.shadowBlur=18;
           ctx.font=`700 ${Math.floor(fs*0.28)}px 'Noto Serif TC',serif`;
           ctx.fillStyle='rgba(253,224,71,0.92)';
-          ctx.fillText('⚡ 所有倍數球 × 2 倍翻倍！⚡', W/2, H*0.74 + fs*0.72);
+          ctx.fillText('⚡ 倍數球 2 倍翻倍 + 鎖定 3 局倍率！⚡', W/2, H*0.74 + fs*0.72);
           ctx.restore();
         }
 
@@ -1123,9 +1123,14 @@ class GameApp {
 
       for (const group of evalResult.winningGroups) {
         if (group.type === SYMBOLS.GOD_MALE) {
+          // 鎖定 3 局倍率 + 倍數球 2 倍翻倍
+          this.engine.lockedMultiplierSpins = 4;
           if (this.engine.lockedMultiplierVal > 0) {
             this.engine.lockedMultiplierVal *= 2;
+          } else {
+            this.engine.lockedMultiplierVal = Math.max(spinMultiplierSum || 0, 15);
           }
+
           // Double all multiplier orbs on grid
           for (let c = 0; c < this.cols; c++) {
             for (let r = 0; r < this.rows; r++) {
