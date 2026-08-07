@@ -118,9 +118,9 @@ export class SlotEngine {
       return { type: SYMBOLS.SCATTER, id, multiplierVal: 0 };
     }
 
-    // High Boss Symbols (3% chance each for balanced gameplay)
-    if (rand < 0.12) return { type: SYMBOLS.GOD_MALE, id, multiplierVal: 0 };
-    if (rand < 0.15) return { type: SYMBOLS.GOD_FEMALE, id, multiplierVal: 0 };
+    // High Boss Symbols (12% chance each for easy testing of Awakening skills)
+    if (rand < 0.21) return { type: SYMBOLS.GOD_MALE, id, multiplierVal: 0 };
+    if (rand < 0.33) return { type: SYMBOLS.GOD_FEMALE, id, multiplierVal: 0 };
 
     // Weighted standard symbols for ~35% natural hit rate
     const weightedSymbols = [
@@ -196,15 +196,18 @@ export class SlotEngine {
     for (const [type, count] of Object.entries(symbolCounts)) {
       if (type === SYMBOLS.SCATTER) continue;
 
-      if (count >= 8) {
+      const minCount = (type === SYMBOLS.GOD_MALE || type === SYMBOLS.GOD_FEMALE) ? 4 : 8;
+
+      if (count >= minCount) {
         let payFactor = 0;
         const payTableMap = PAYTABLE[type];
         if (payTableMap) {
           if (count >= 12) payFactor = payTableMap[12] || 30.0;
           else if (count >= 10) payFactor = payTableMap[10] || 15.0;
           else if (count >= 8) payFactor = payTableMap[8] || 5.0;
+          else payFactor = 2.0;
         } else {
-          payFactor = 5.0;
+          payFactor = 2.0;
         }
 
         const payout = payFactor * this.currentBet;

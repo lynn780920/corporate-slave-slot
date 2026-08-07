@@ -455,10 +455,6 @@ class GameApp {
     ctx.shadowColor = '#f59e0b';
     ctx.shadowBlur = 15;
     ctx.strokeRect(3, 3, w - 6, h - 6);
-    ctx.shadowBlur = 0;
-
-    this.drawGatesOfSetMascots(ctx, w, h);
-
     // 6x5 Grid Cells & Render PNG Symbols Cropped from User Screenshot
     for (let c = 0; c < this.cols; c++) {
       for (let r = 0; r < this.rows; r++) {
@@ -529,6 +525,8 @@ class GameApp {
         }
       }
     }
+
+    this.drawGatesOfSetMascots(ctx, w, h);
 
     // Cell Elimination Shockwaves
     for (let i = this.cellShockwaves.length - 1; i >= 0; i--) {
