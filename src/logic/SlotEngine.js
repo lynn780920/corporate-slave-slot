@@ -155,10 +155,10 @@ export class SlotEngine {
     this.grid = [];
     let scatterCount = 0;
 
-    // Pick 1-2 featured symbols for this spin to create natural ~38% hit rate clusters (or ~70% if forceWin)
-    const lowMidPool = [SYMBOLS.GEM_GREEN, SYMBOLS.GEM_BLUE, SYMBOLS.GEM_PURPLE, SYMBOLS.GEM_RED];
-    const featuredSymbol = Math.random() < 0.40 ? lowMidPool[Math.floor(Math.random() * lowMidPool.length)] : null;
-    const featureWeightChance = 0.25;
+    // 高爽快度高爆發 RTP：提升主符號集群機率至 ~70% 連線中獎率！
+    const lowMidPool = [SYMBOLS.EYE, SYMBOLS.SCEPTER, SYMBOLS.BOW, SYMBOLS.SWORD, SYMBOLS.GEM_ORANGE, SYMBOLS.GEM_RED, SYMBOLS.GEM_PURPLE, SYMBOLS.GEM_BLUE, SYMBOLS.GEM_GREEN];
+    const featuredSymbol = Math.random() < 0.85 ? lowMidPool[Math.floor(Math.random() * lowMidPool.length)] : null;
+    const featureWeightChance = 0.38;
 
     for (let c = 0; c < this.cols; c++) {
       const col = [];
