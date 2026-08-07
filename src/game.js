@@ -490,31 +490,22 @@ class GameApp {
       resultMsg.classList.add('hidden');
       modal.classList.remove('hidden');
 
-      const cleanupAndClose = (delay = 1200) => {
-        setTimeout(() => {
-          modal.classList.add('hidden');
-          this.uiManager.updateDisplay();
-          resolve();
-        }, delay);
-      };
-
-      const handleCashout = () => {
-        btnCashout.removeEventListener('click', handleCashout);
-        btnStart.removeEventListener('click', handleStart);
+      btnCashout.onclick = () => {
+        btnCashout.onclick = null;
+        btnStart.onclick = null;
         modal.classList.add('hidden');
+        this.uiManager.updateDisplay();
         resolve();
       };
 
-      const handleStart = () => {
-        btnCashout.removeEventListener('click', handleCashout);
-        btnStart.removeEventListener('click', handleStart);
+      btnStart.onclick = () => {
         choiceContainer.classList.add('hidden');
         cardsContainer.classList.remove('hidden');
       };
 
       const handleFlipCard = () => {
-        card1.removeEventListener('click', handleFlipCard);
-        card2.removeEventListener('click', handleFlipCard);
+        card1.onclick = null;
+        card2.onclick = null;
 
         const win = Math.random() < 0.5;
         resultMsg.classList.remove('hidden');
@@ -533,13 +524,15 @@ class GameApp {
           soundManager.playExplode();
         }
 
-        cleanupAndClose(2000);
+        setTimeout(() => {
+          modal.classList.add('hidden');
+          this.uiManager.updateDisplay();
+          resolve();
+        }, 1800);
       };
 
-      btnCashout.addEventListener('click', handleCashout);
-      btnStart.addEventListener('click', handleStart);
-      card1.addEventListener('click', handleFlipCard);
-      card2.addEventListener('click', handleFlipCard);
+      card1.onclick = handleFlipCard;
+      card2.onclick = handleFlipCard;
     });
   }
 
@@ -1391,8 +1384,8 @@ class GameApp {
       let godMaleTriggered = false;
 
       for (const group of evalResult.winningGroups) {
-        if (group.type === SYMBOLS.GOD_MALE && group.count >= 4) {
-          // 4 個以上貓皇即可觸發覺醒極速狂點與倍數鎖定
+        if (group.type === SYMBOLS.GOD_MALE && group.count >= 6) {
+          // 6 個以上貓皇即可觸發覺醒極速狂點與倍數鎖定 (鎖定 3 局)
           this.engine.lockedMultiplierSpins = 4;
           const currentOrbs = this.engine.getMultiplierOrbs();
           const currentOrbsSum = currentOrbs.reduce((sum, o) => sum + o.val, 0);
@@ -1490,6 +1483,9 @@ class GameApp {
 
     if (this.engine.lockedMultiplierSpins > 0) {
       this.engine.lockedMultiplierSpins--;
+      if (this.engine.lockedMultiplierSpins === 0) {
+        this.engine.lockedMultiplierVal = 0; // 重置鎖定倍率，嚴格確保只鎖定 3 局！
+      }
     }
 
     if (this.engine.isFreeSpins) {
