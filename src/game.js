@@ -1470,22 +1470,18 @@ class GameApp {
       finalTotalMultiplier = Math.max(finalTotalMultiplier, this.engine.lockedMultiplierVal);
     }
 
-    if (this.engine.lockedMultiplierSpins > 0 && this.engine.lockedMultiplierVal > 0) {
-      this.uiManager.setMultiplierDisplay(`🔒 ${this.engine.lockedMultiplierVal}x (${this.engine.lockedMultiplierSpins - 1}局)`);
-    } else {
-      this.uiManager.setMultiplierDisplay(finalTotalMultiplier);
-    }
-
-    const finalSpinPayout = spinTotalWin * finalTotalMultiplier;
-    this.engine.balance += finalSpinPayout;
-    this.uiManager.setWinAmount(finalSpinPayout);
-    this.uiManager.updateDisplay();
-
     if (this.engine.lockedMultiplierSpins > 0) {
       this.engine.lockedMultiplierSpins--;
-      if (this.engine.lockedMultiplierSpins === 0) {
-        this.engine.lockedMultiplierVal = 0; // 重置鎖定倍率，嚴格確保只鎖定 3 局！
+      if (this.engine.lockedMultiplierSpins <= 0) {
+        this.engine.lockedMultiplierSpins = 0;
+        this.engine.lockedMultiplierVal = 0; // 歸零重置鎖定倍率，嚴格確保只鎖定 3 局！
       }
+    }
+
+    if (this.engine.lockedMultiplierSpins > 0 && this.engine.lockedMultiplierVal > 0) {
+      this.uiManager.setMultiplierDisplay(`🔒 ${this.engine.lockedMultiplierVal}x (${this.engine.lockedMultiplierSpins}局)`);
+    } else {
+      this.uiManager.setMultiplierDisplay(finalTotalMultiplier);
     }
 
     if (this.engine.isFreeSpins) {
