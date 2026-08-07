@@ -480,6 +480,10 @@ class GameApp {
 
       if (!modal || !elWin) { resolve(); return; }
 
+      // 暫停自動旋轉，確保玩家能主動參與博弈
+      this.engine.autoSpinCount = 0;
+      this.uiManager.updateDisplay();
+
       elWin.textContent = `$${currentWin.toFixed(2)}`;
       choiceContainer.classList.remove('hidden');
       cardsContainer.classList.add('hidden');
@@ -1387,8 +1391,8 @@ class GameApp {
       let godMaleTriggered = false;
 
       for (const group of evalResult.winningGroups) {
-        if (group.type === SYMBOLS.GOD_MALE && group.count >= 8) {
-          // 嚴格 8 個以上貓皇才觸發覺醒 (鎖定 3 局倍率 + 倍數球 2 倍翻倍)
+        if (group.type === SYMBOLS.GOD_MALE && group.count >= 4) {
+          // 4 個以上貓皇即可觸發覺醒極速狂點與倍數鎖定
           this.engine.lockedMultiplierSpins = 4;
           const currentOrbs = this.engine.getMultiplierOrbs();
           const currentOrbsSum = currentOrbs.reduce((sum, o) => sum + o.val, 0);
@@ -1497,7 +1501,7 @@ class GameApp {
       await this.triggerFullscreenBigWin(finalSpinPayout);
     }
 
-    if (finalSpinPayout >= this.engine.getBet() * 5) {
+    if (finalSpinPayout > 0 && !this.engine.isFreeSpins) {
       await this.triggerGambleModal(finalSpinPayout);
     }
 
