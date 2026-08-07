@@ -43,7 +43,7 @@ export class SlotEngine {
     this.rows = 5;
     this.balance = accountManager.currentUser ? accountManager.currentUser.balance : 2000;
 
-    // Minimum bet $2, Maximum bet $30
+    // Strictly Minimum bet $2, Maximum bet $30
     this.betSizes = [2, 5, 10, 15, 20, 25, 30];
     this.currentBetIdx = 2; // Default $10
     this.currentBet = this.betSizes[this.currentBetIdx];
@@ -78,10 +78,9 @@ export class SlotEngine {
   }
 
   setBetIdx(idx) {
-    if (idx >= 0 && idx < this.betSizes.length) {
-      this.currentBetIdx = idx;
-      this.currentBet = this.betSizes[idx];
-    }
+    const clampedIdx = Math.max(0, Math.min(idx, this.betSizes.length - 1));
+    this.currentBetIdx = clampedIdx;
+    this.currentBet = this.betSizes[clampedIdx];
   }
 
   initializeGrid() {

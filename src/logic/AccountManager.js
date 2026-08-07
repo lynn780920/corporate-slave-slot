@@ -2,8 +2,9 @@
  * 社畜變賭徒 - 多使用者帳號註冊/登入與餘額持久化管理 (Account & Balance Storage)
  */
 
-const STORAGE_KEY = 'corporate_slave_users_v1';
-const CURRENT_USER_KEY = 'corporate_slave_current_user_v1';
+// Upgraded version key to v2 to wipe old cached $10,000 / $100 bet data
+const STORAGE_KEY = 'corporate_slave_users_v2';
+const CURRENT_USER_KEY = 'corporate_slave_current_user_v2';
 
 export class AccountManager {
   constructor() {
