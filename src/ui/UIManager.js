@@ -174,12 +174,12 @@ export class UIManager {
           alert('請輸入玩家暱稱！');
           return;
         }
-        accountManager.register(inputName, 10000);
+        accountManager.register(inputName, 2000);
         this.engine.syncBalanceWithAccount();
         this.updateDisplay();
         if (this.elModalAccount) this.elModalAccount.classList.add('hidden');
         this.elInputNewUsername.value = '';
-        alert(`註冊成功！新玩家 [${inputName}] 已登入，獲得初始籌碼 $10,000！`);
+        alert(`註冊成功！新玩家 [${inputName}] 已登入，獲得初始籌碼 $2,000！`);
       });
     }
 
