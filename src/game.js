@@ -289,8 +289,14 @@ class GameApp {
         this.bigWinCurrent = this.bigWinTarget * progress;
 
         const elAmount = document.getElementById('fs-bigwin-amount');
+        const elMult = document.getElementById('fs-bigwin-multiplier');
+        const currentBet = Math.max(1, this.engine.getBet());
+
         if (elAmount) {
           elAmount.textContent = `$${this.bigWinCurrent.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        }
+        if (elMult) {
+          elMult.textContent = `${(this.bigWinCurrent / currentBet).toFixed(1)}X`;
         }
 
         if (progress < 1) {
@@ -299,6 +305,9 @@ class GameApp {
           this.bigWinCurrent = this.bigWinTarget;
           if (elAmount) {
             elAmount.textContent = `$${this.bigWinTarget.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+          }
+          if (elMult) {
+            elMult.textContent = `${(this.bigWinTarget / currentBet).toFixed(1)}X`;
           }
           resolve();
         }

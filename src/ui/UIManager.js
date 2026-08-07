@@ -41,6 +41,7 @@ export class UIManager {
     this.elFsBigWinOverlay = document.getElementById('fullscreen-bigwin-overlay');
     this.elFsBigWinTitle = document.getElementById('fs-bigwin-title');
     this.elFsBigWinAmount = document.getElementById('fs-bigwin-amount');
+    this.elFsBigWinMultiplier = document.getElementById('fs-bigwin-multiplier');
     this.elBtnCloseFsBigWin = document.getElementById('btn-close-fs-bigwin');
 
     this.elFreeSpinsModal = document.getElementById('modal-freespins');
@@ -292,8 +293,12 @@ export class UIManager {
       title = 'MEGA WIN! 🐾 貓狗開心數錢';
     }
 
+    const bet = Math.max(1, this.engine.getBet());
+    const multiplier = (winAmount / bet).toFixed(1);
+
     if (this.elFsBigWinTitle) this.elFsBigWinTitle.textContent = title;
     if (this.elFsBigWinAmount) this.elFsBigWinAmount.textContent = `$${winAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
+    if (this.elFsBigWinMultiplier) this.elFsBigWinMultiplier.textContent = `${multiplier}X`;
     if (this.elFsBigWinOverlay) this.elFsBigWinOverlay.classList.remove('hidden');
   }
 
