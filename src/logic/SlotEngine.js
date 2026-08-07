@@ -157,8 +157,8 @@ export class SlotEngine {
 
     // Pick 1-2 featured symbols for this spin to create natural ~38% hit rate clusters (or ~70% if forceWin)
     const lowMidPool = [SYMBOLS.GEM_GREEN, SYMBOLS.GEM_BLUE, SYMBOLS.GEM_PURPLE, SYMBOLS.GEM_RED];
-    const featuredSymbol = (forceWin || Math.random() < 0.40) ? lowMidPool[Math.floor(Math.random() * lowMidPool.length)] : null;
-    const featureWeightChance = forceWin ? 0.45 : 0.25;
+    const featuredSymbol = Math.random() < 0.40 ? lowMidPool[Math.floor(Math.random() * lowMidPool.length)] : null;
+    const featureWeightChance = 0.25;
 
     for (let c = 0; c < this.cols; c++) {
       const col = [];
