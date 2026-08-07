@@ -192,6 +192,74 @@
     <canvas id="cinematic-canvas" style="width:100%;height:100%;object-fit:cover;"></canvas>
   </div>
 
+  <!-- 🏚️ 乞丐躺路邊窮困潦倒 破產救濟 Overlay -->
+  <div id="poverty-cinematic" class="hidden fixed inset-0 z-[210] flex items-center justify-center bg-black/95 backdrop-blur-xl p-4">
+    <div class="relative max-w-xl w-full text-center flex flex-col items-center bg-gradient-to-b from-slate-900 via-slate-950 to-black border-4 border-amber-500/80 rounded-3xl p-6 sm:p-8 shadow-[0_0_80px_rgba(245,158,11,0.5)]">
+      <div class="relative w-full aspect-video rounded-2xl overflow-hidden mb-5 border-2 border-amber-500/40 shadow-2xl">
+        <img id="img-beggar-poverty" src="./assets/beggar_poverty.png" class="w-full h-full object-cover animate-pulse" alt="窮困潦倒乞丐貓狗" />
+        <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent"></div>
+        <div class="absolute bottom-2 left-0 right-0 text-amber-300 font-black text-lg sm:text-2xl drop-shadow-[0_2px_10px_rgba(0,0,0,1)]">
+          💸 輸光口袋空空... 乞丐躺路邊！
+        </div>
+      </div>
+      
+      <h2 class="text-2xl sm:text-4xl font-black text-amber-400 mb-2 drop-shadow-[0_0_15px_rgba(251,191,36,0.8)]">
+        窮困潦倒！請勿沉迷賭博！
+      </h2>
+      <p class="text-sm sm:text-base text-amber-100/90 font-bold mb-6 max-w-md">
+        小賭怡情，大賭傷身！拯救社畜系統已自動撥付 <span class="text-emerald-400 font-black text-xl">$10,000</span> 救濟籌碼，請重新出發！
+      </p>
+
+      <button id="btn-claim-relief" class="gold-btn px-10 py-3.5 rounded-2xl text-xl font-black shadow-[0_0_30px_rgba(245,158,11,0.8)] hover:scale-105 transition-all">
+        💰 收下救濟金 $10,000 重來！
+      </button>
+    </div>
+  </div>
+
+  <!-- 🃏 加班賭一把 雙倍博弈 Modal (贏分 >= 50x 注額時觸發) -->
+  <div id="modal-gamble" class="hidden fixed inset-0 z-[190] flex items-center justify-center bg-black/90 backdrop-blur-md p-4">
+    <div class="relative bg-gradient-to-b from-slate-900 via-slate-950 to-black border-4 border-amber-400 rounded-3xl p-6 sm:p-8 max-w-lg w-full text-center shadow-[0_0_70px_rgba(251,191,36,0.6)]">
+      <h2 class="text-2xl sm:text-4xl font-black text-amber-300 mb-2 drop-shadow-[0_0_15px_rgba(245,158,11,0.9)]">
+        🃏 加班賭一把 翻倍博弈！
+      </h2>
+      <p class="text-xs sm:text-sm text-amber-200/90 mb-4">
+        大爆發！單局贏分超過 50 倍注額！選擇【加班賭一把】二選一翻牌！
+      </p>
+
+      <div class="my-4 bg-slate-900/90 border border-amber-500/40 rounded-2xl p-4 shadow-inner">
+        <span class="text-xs text-amber-400 font-bold block mb-1">當前獎金：</span>
+        <span id="gamble-current-win" class="text-3xl sm:text-5xl font-black text-emerald-400 drop-shadow-[0_0_20px_rgba(52,211,153,0.8)]">$0.00</span>
+      </div>
+
+      <!-- Gamble Action Buttons (Before Flip) -->
+      <div id="gamble-choice-container" class="grid grid-cols-2 gap-4 my-6">
+        <button id="btn-gamble-cashout" class="py-4 px-4 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-800 border-2 border-emerald-300 text-white font-black text-lg hover:scale-105 shadow-xl transition-all">
+          💰 領錢下班<br><span class="text-xs font-normal opacity-80">(直接領取獎金)</span>
+        </button>
+        <button id="btn-gamble-start" class="py-4 px-4 rounded-2xl gold-btn text-slate-950 font-black text-lg hover:scale-105 shadow-xl transition-all">
+          🃏 加班賭一把！<br><span class="text-xs font-normal opacity-90">(二選一翻倍 2x)</span>
+        </button>
+      </div>
+
+      <!-- Cards Container (Hidden until gamble started) -->
+      <div id="gamble-cards-container" class="hidden my-6">
+        <p class="text-xs text-amber-300 font-bold mb-3">請手動選擇一張卡片翻牌：</p>
+        <div class="grid grid-cols-2 gap-4">
+          <div id="card-option-1" class="cursor-pointer bg-amber-950/80 border-2 border-amber-400 hover:border-amber-200 rounded-2xl p-6 transition-all hover:scale-105 shadow-2xl flex flex-col items-center">
+            <span class="text-4xl mb-2">💼</span>
+            <span class="font-black text-amber-300 text-sm">公事包 A</span>
+          </div>
+          <div id="card-option-2" class="cursor-pointer bg-amber-950/80 border-2 border-amber-400 hover:border-amber-200 rounded-2xl p-6 transition-all hover:scale-105 shadow-2xl flex flex-col items-center">
+            <span class="text-4xl mb-2">📁</span>
+            <span class="font-black text-amber-300 text-sm">公事包 B</span>
+          </div>
+        </div>
+      </div>
+
+      <div id="gamble-result-msg" class="hidden text-xl font-black my-4"></div>
+    </div>
+  </div>
+
   <!-- Multi-User Account Login & Register Modal -->
   <div id="modal-account" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4">
     <div class="relative bg-slate-950 border-2 border-amber-500 rounded-3xl p-6 sm:p-8 max-w-md w-full text-amber-100 shadow-2xl">
@@ -229,7 +297,7 @@
           <img src="./assets/chairman_cat.png" class="w-14 h-14 object-contain rounded-xl border border-amber-300 shadow-md" />
           <div>
             <div class="font-black text-amber-300 text-sm flex items-center gap-1">👑 董事長貓皇 <span class="text-[10px] bg-amber-500/30 text-amber-200 px-1.5 py-0.5 rounded font-extrabold">力量覺醒</span></div>
-            <div class="text-amber-200/90 text-[11px] font-bold mt-0.5">4+ 登場：發動力量覺醒 (倍數 2 倍翻倍)！</div>
+            <div class="text-amber-200/90 text-[11px] font-bold mt-0.5">8+ 登場：發動力量覺醒 (倍數 2 倍翻倍 + 鎖定 3 局倍率)！</div>
             <div class="text-[10px] text-amber-400/80">12+: 600 (30x) | 10-11: 300 (15x) | 8-9: 100 (5x)</div>
           </div>
         </div>

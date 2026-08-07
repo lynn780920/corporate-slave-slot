@@ -106,7 +106,7 @@ class GameApp {
       'gem_orange', 'gem_red', 'gem_purple', 'gem_blue', 'gem_green',
       'scatter', 'god_male', 'chairman_cat',
       'multiplier', 'mult_green', 'mult_blue', 'mult_purple', 'bg_gods',
-      'cat_emperor_cinematic'
+      'cat_emperor_cinematic', 'beggar_poverty'
     ];
 
     const baseUrl = (typeof import.meta !== 'undefined' && import.meta && import.meta.env && import.meta.env.BASE_URL) ? import.meta.env.BASE_URL : './';
@@ -255,19 +255,110 @@ class GameApp {
           ctx.restore();
         }
 
-        // White flash intro
-        if (t < 0.07) {
-          ctx.save(); ctx.globalAlpha = 1 - t/0.07;
-          ctx.fillStyle='#fff'; ctx.fillRect(0,0,W,H);
-          ctx.restore();
-        }
+  // =============================================
+  // 🏚️ 乞丐躺路邊窮困潦倒 破產救濟 CINEMATIC
+  // =============================================
+  triggerPovertyCinematic() {
+    return new Promise(resolve => {
+      const overlay = document.getElementById('poverty-cinematic');
+      const btn = document.getElementById('btn-claim-relief');
+      if (!overlay) {
+        this.engine.balance = 10000;
+        this.engine.saveAccountBalance();
+        this.uiManager.updateDisplay();
+        resolve();
+        return;
+      }
 
-        frame++;
-        if (frame < TOTAL) requestAnimationFrame(doFrame);
-        else { overlay.classList.add('hidden'); resolve(); }
+      overlay.classList.remove('hidden');
+      soundManager.playExplode();
+
+      const handleClaim = () => {
+        btn.removeEventListener('click', handleClaim);
+        overlay.classList.add('hidden');
+        this.engine.balance = 10000;
+        this.engine.saveAccountBalance();
+        this.uiManager.updateDisplay();
+        resolve();
       };
 
-      requestAnimationFrame(doFrame);
+      btn.addEventListener('click', handleClaim);
+    });
+  }
+
+  // =============================================
+  // 🃏 加班賭一把 50X 雙倍博弈 (GAMBLE MODAL)
+  // =============================================
+  triggerGambleModal(currentWin) {
+    return new Promise(resolve => {
+      const modal = document.getElementById('modal-gamble');
+      const elWin = document.getElementById('gamble-current-win');
+      const choiceContainer = document.getElementById('gamble-choice-container');
+      const cardsContainer = document.getElementById('gamble-cards-container');
+      const resultMsg = document.getElementById('gamble-result-msg');
+      const btnCashout = document.getElementById('btn-gamble-cashout');
+      const btnStart = document.getElementById('btn-gamble-start');
+      const card1 = document.getElementById('card-option-1');
+      const card2 = document.getElementById('card-option-2');
+
+      if (!modal || !elWin) { resolve(); return; }
+
+      elWin.textContent = `$${currentWin.toFixed(2)}`;
+      choiceContainer.classList.remove('hidden');
+      cardsContainer.classList.add('hidden');
+      resultMsg.classList.add('hidden');
+      modal.classList.remove('hidden');
+
+      const cleanupAndClose = (delay = 1200) => {
+        setTimeout(() => {
+          modal.classList.add('hidden');
+          this.uiManager.updateDisplay();
+          resolve();
+        }, delay);
+      };
+
+      const handleCashout = () => {
+        btnCashout.removeEventListener('click', handleCashout);
+        btnStart.removeEventListener('click', handleStart);
+        modal.classList.add('hidden');
+        resolve();
+      };
+
+      const handleStart = () => {
+        btnCashout.removeEventListener('click', handleCashout);
+        btnStart.removeEventListener('click', handleStart);
+        choiceContainer.classList.add('hidden');
+        cardsContainer.classList.remove('hidden');
+      };
+
+      const handleFlipCard = () => {
+        card1.removeEventListener('click', handleFlipCard);
+        card2.removeEventListener('click', handleFlipCard);
+
+        const win = Math.random() < 0.5;
+        resultMsg.classList.remove('hidden');
+
+        if (win) {
+          resultMsg.className = 'text-2xl font-black my-4 text-emerald-400 drop-shadow-[0_0_15px_rgba(52,211,153,0.9)]';
+          resultMsg.textContent = `🎉 翻中【佛心老闆】！贏分翻倍：+$${currentWin.toFixed(2)}！`;
+          this.engine.balance += currentWin;
+          this.engine.saveAccountBalance();
+          soundManager.playBigWin();
+        } else {
+          resultMsg.className = 'text-2xl font-black my-4 text-rose-500 drop-shadow-[0_0_15px_rgba(244,63,94,0.9)]';
+          resultMsg.textContent = `😭 翻中【黑心老闆】！本局贏分被沒收！`;
+          this.engine.balance = Math.max(0, this.engine.balance - currentWin);
+          this.engine.saveAccountBalance();
+          soundManager.playExplode();
+        }
+
+        cleanupAndClose(2000);
+      };
+
+      btnCashout.addEventListener('click', handleCashout);
+      btnStart.addEventListener('click', handleStart);
+      card1.addEventListener('click', handleFlipCard);
+      card2.addEventListener('click', handleFlipCard);
     });
   }
 
@@ -931,9 +1022,8 @@ class GameApp {
     try {
       const bet = this.engine.getBet();
       if (this.engine.balance < bet && !this.engine.isFreeSpins) {
-        alert('餘額不足！');
         this.engine.autoSpinCount = 0;
-        this.uiManager.updateDisplay();
+        await this.triggerPovertyCinematic();
         return;
       }
 
@@ -1223,6 +1313,10 @@ class GameApp {
     if (finalSpinPayout >= this.engine.getBet() * 40) {
       soundManager.playBigWin();
       await this.triggerFullscreenBigWin(finalSpinPayout);
+    }
+
+    if (finalSpinPayout >= this.engine.getBet() * 50) {
+      await this.triggerGambleModal(finalSpinPayout);
     }
 
     const scattersRes = this.engine.countScatters();
