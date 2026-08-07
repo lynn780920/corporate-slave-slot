@@ -1,4 +1,3 @@
-import './index.css';
 import { SlotEngine, SYMBOLS } from './logic/SlotEngine.js';
 import { soundManager } from './logic/SoundManager.js';
 import { UIManager } from './ui/UIManager.js';
@@ -105,7 +104,7 @@ class GameApp {
       'multiplier', 'mult_green', 'mult_blue', 'mult_purple', 'bg_gods'
     ];
 
-    const baseUrl = import.meta.env.BASE_URL || './';
+    const baseUrl = (typeof import.meta !== 'undefined' && import.meta && import.meta.env && import.meta.env.BASE_URL) ? import.meta.env.BASE_URL : './';
     const cleanBase = baseUrl.endsWith('/') ? baseUrl : baseUrl + '/';
 
     assetList.forEach(name => {

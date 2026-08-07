@@ -1,4 +1,4 @@
-import * as PIXI from 'pixi.js';
+const PIXI = window.PIXI;
 
 /**
  * Screen FX Manager

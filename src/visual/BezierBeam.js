@@ -1,4 +1,4 @@
-import * as PIXI from 'pixi.js';
+const PIXI = window.PIXI;
 
 /**
  * Bezier Light Beam Trajectory FX for Multiplier Orbs

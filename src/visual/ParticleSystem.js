@@ -1,4 +1,4 @@
-import * as PIXI from 'pixi.js';
+const PIXI = window.PIXI;
 
 /**
  * PixiJS Particle System for Gates of Set
