@@ -10,8 +10,8 @@ export class AccountManager {
     this.users = this.loadUsers();
     this.currentUser = this.loadCurrentUser();
     if (!this.currentUser) {
-      // Default guest user
-      this.currentUser = this.register('社畜賭徒', 10000);
+      // Default guest user starting balance $2,000
+      this.currentUser = this.register('社畜賭徒', 2000);
     }
   }
 
@@ -48,7 +48,7 @@ export class AccountManager {
     } catch (e) {}
   }
 
-  register(username, initialBalance = 10000) {
+  register(username, initialBalance = 2000) {
     const trimmed = username.trim();
     if (!trimmed) return null;
 

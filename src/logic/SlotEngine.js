@@ -41,9 +41,11 @@ export class SlotEngine {
   constructor() {
     this.cols = 6;
     this.rows = 5;
-    this.balance = accountManager.currentUser ? accountManager.currentUser.balance : 10000;
-    this.betSizes = [10, 20, 50, 100, 200, 500, 1000, 2000, 5000];
-    this.currentBetIdx = 3; // Default $100
+    this.balance = accountManager.currentUser ? accountManager.currentUser.balance : 2000;
+
+    // Minimum bet $2, Maximum bet $30
+    this.betSizes = [2, 5, 10, 15, 20, 25, 30];
+    this.currentBetIdx = 2; // Default $10
     this.currentBet = this.betSizes[this.currentBetIdx];
 
     // Mode States
