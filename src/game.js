@@ -694,10 +694,31 @@ class GameApp {
     this.triggerShake(this.bigWinTier * 10 + 10, 45);
 
     return new Promise((resolve) => {
-      const durationMs = this.bigWinTier === 3 ? 4200 : (this.bigWinTier === 2 ? 3500 : 3000);
+      const durationMs = this.bigWinTier === 3 ? 3500 : (this.bigWinTier === 2 ? 2800 : 2200);
       const startTime = performance.now();
+      const overlay = document.getElementById('fullscreen-bigwin-overlay');
+      const btnClose = document.getElementById('btn-close-fs-bigwin');
+
+      let resolved = false;
+      const finishAndClose = () => {
+        if (resolved) return;
+        resolved = true;
+        if (btnClose) btnClose.onclick = null;
+        if (overlay) overlay.classList.add('hidden');
+        this.bigWinMode = false;
+        this.uiManager.updateDisplay();
+        resolve();
+      };
+
+      if (btnClose) {
+        btnClose.onclick = (e) => {
+          e.preventDefault();
+          finishAndClose();
+        };
+      }
 
       const step = (now) => {
+        if (resolved) return;
         const progress = Math.min(1, (now - startTime) / durationMs);
         this.bigWinCurrent = this.bigWinTarget * progress;
 
@@ -724,7 +745,9 @@ class GameApp {
             const tm = this.bigWinTarget / currentBet;
             elMult.textContent = `${(tm % 1 === 0 ? tm.toFixed(0) : tm.toFixed(2))}X`;
           }
-          resolve();
+          setTimeout(() => {
+            finishAndClose();
+          }, 1200);
         }
       };
       requestAnimationFrame(step);
@@ -1505,6 +1528,12 @@ class GameApp {
     } else {
       this.uiManager.setMultiplierDisplay(finalTotalMultiplier);
     }
+
+    const finalSpinPayout = spinTotalWin * finalTotalMultiplier;
+
+    this.engine.balance += finalSpinPayout;
+    this.uiManager.setWinAmount(finalSpinPayout);
+    this.uiManager.updateDisplay();
 
     if (this.engine.isFreeSpins) {
       this.engine.totalFreeSpinsWin += finalSpinPayout;
