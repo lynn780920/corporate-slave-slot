@@ -56,6 +56,10 @@ class GameApp {
     this.shakeOffsetY = 0;
     this.globalTime = 0;
 
+    this.godFlashAlpha = 0;
+    this.godFlashColor = '#f59e0b';
+    this.godRaysAngle = 0;
+
     this.cellStates = Array.from({ length: 6 }, () => 
       Array.from({ length: 5 }, () => ({
         offsetY: 0, scale: 1, alpha: 1, glow: 0, rotation: 0
@@ -550,6 +554,35 @@ class GameApp {
       ctx.restore();
     }
 
+    // Gates of Set God Awakening Flash Rays Overlay
+    if (this.godFlashAlpha > 0) {
+      this.godFlashAlpha -= 0.02;
+      this.godRaysAngle += 0.03;
+
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, this.godFlashAlpha);
+      ctx.globalCompositeOperation = 'screen';
+      
+      const cx = this.gridWidth / 2;
+      const cy = this.gridHeight / 2;
+
+      ctx.translate(cx, cy);
+      ctx.rotate(this.godRaysAngle);
+      ctx.fillStyle = this.godFlashColor;
+      
+      const numRays = 16;
+      const rayLen = Math.max(this.gridWidth, this.gridHeight) * 1.5;
+      for (let i = 0; i < numRays; i++) {
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.arc(0, 0, rayLen, (i * 2 * Math.PI) / numRays, ((i * 2 + 1) * Math.PI) / numRays);
+        ctx.lineTo(0, 0);
+        ctx.fill();
+      }
+
+      ctx.restore();
+    }
+
     // Floating Score Numbers
     for (let i = this.floatingTexts.length - 1; i >= 0; i--) {
       const ft = this.floatingTexts[i];
@@ -919,21 +952,23 @@ class GameApp {
             this.engine.lockedMultiplierVal *= 2;
           }
 
+          // Double multiplier values on all grid orbs & shoot lightning laser beams!
           for (let c = 0; c < this.cols; c++) {
             for (let r = 0; r < this.rows; r++) {
               if (this.engine.grid[c][r] && this.engine.grid[c][r].type === SYMBOLS.MULTIPLIER) {
                 this.engine.grid[c][r].multiplierVal *= 2;
+                const orbX = c * (this.cellSize + this.cellGap) + this.cellGap + this.cellSize / 2;
+                const orbY = r * (this.cellSize + this.cellGap) + this.cellGap + this.cellSize / 2;
+                this.spawnMultiplierLaserBeam(x, y, orbX, orbY, this.engine.grid[c][r].multiplierVal);
+                this.spawnShockwave(orbX, orbY);
               }
             }
           }
 
-          this.spawnFloatingText(x, y - 30, `👑 董事長貓皇：力量覺醒！倍數 2 倍翻倍！`, '#fde047');
-          this.triggerShake(25, 35);
-          this.uiManager.triggerAwakeningBanner(
-            '👑 董事長貓皇：力量覺醒！',
-            '⚡ 盤面所有倍數球 2 倍翻倍！',
-            './assets/chairman_cat.png'
-          );
+          this.godFlashAlpha = 0.85;
+          this.godFlashColor = 'rgba(253, 224, 71, 0.4)';
+          this.triggerShake(22, 30);
+          this.spawnFloatingText(x, y - 40, `👑 力量覺醒！倍數 2 倍翻倍！`);
           soundManager.playBigWin();
         } else if (group.type === SYMBOLS.GOD_FEMALE) {
           const firstPos = group.positions[0];
@@ -944,13 +979,21 @@ class GameApp {
           const baseLock = Math.max(this.engine.lockedMultiplierVal || 0, spinMultiplierSum || 0, 15);
           this.engine.lockedMultiplierVal = baseLock;
 
-          this.spawnFloatingText(x, y - 30, `👔 總經理哈士奇：鎖定覺醒！鎖定 ${baseLock}x 保留 3 局！`, '#38bdf8');
-          this.triggerShake(25, 35);
-          this.uiManager.triggerAwakeningBanner(
-            '👔 總經理哈士奇：鎖定覺醒！',
-            `🔒 強制鎖定 ${baseLock}x 倍數保留 3 局不歸零！`,
-            './assets/gm_husky.png'
-          );
+          for (let c = 0; c < this.cols; c++) {
+            for (let r = 0; r < this.rows; r++) {
+              if (this.engine.grid[c][r] && this.engine.grid[c][r].type === SYMBOLS.MULTIPLIER) {
+                const orbX = c * (this.cellSize + this.cellGap) + this.cellGap + this.cellSize / 2;
+                const orbY = r * (this.cellSize + this.cellGap) + this.cellGap + this.cellSize / 2;
+                this.spawnMultiplierLaserBeam(x, y, orbX, orbY, baseLock);
+                this.spawnShockwave(orbX, orbY);
+              }
+            }
+          }
+
+          this.godFlashAlpha = 0.85;
+          this.godFlashColor = 'rgba(56, 189, 248, 0.4)';
+          this.triggerShake(22, 30);
+          this.spawnFloatingText(x, y - 40, `👔 鎖定覺醒！鎖定 ${baseLock}x 保留 3 局！`);
           soundManager.playBigWin();
         }
 
