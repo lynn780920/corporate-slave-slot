@@ -49,11 +49,9 @@ export class AccountManager {
       this.saveDeviceBalance(newBalance);
     }
   }
-    }
-  }
 
   getUserList() {
-    return Object.values(this.users);
+    return [this.currentUser];
   }
 }
 
