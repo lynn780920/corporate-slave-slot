@@ -311,6 +311,64 @@ class GameApp {
   }
 
   // =============================================
+  // ⚡ 貓皇覺醒 3秒手動極速狂點 MINI-GAME
+  // =============================================
+  triggerTapMinigame() {
+    return new Promise(resolve => {
+      const modal = document.getElementById('modal-tap-minigame');
+      const btnTarget = document.getElementById('btn-tap-target');
+      const elTimer = document.getElementById('tap-timer-val');
+      const elCount = document.getElementById('tap-count-val');
+      const elBonus = document.getElementById('tap-bonus-val');
+      const elBar = document.getElementById('tap-progress-fill');
+
+      if (!modal || !btnTarget) { resolve(0); return; }
+
+      let tapCount = 0;
+      let timeLeft = 3.0;
+      modal.classList.remove('hidden');
+
+      if (elCount) elCount.textContent = '0';
+      if (elBonus) elBonus.textContent = '+0x';
+      if (elTimer) elTimer.textContent = '3.0s';
+      if (elBar) elBar.style.width = '0%';
+
+      soundManager.playBigWin();
+
+      const handleTap = (e) => {
+        e.preventDefault();
+        tapCount++;
+        const bonus = Math.floor(tapCount * 1.5);
+        if (elCount) elCount.textContent = tapCount.toString();
+        if (elBonus) elBonus.textContent = `+${bonus}x`;
+        if (elBar) elBar.style.width = `${Math.min(100, (tapCount / 25) * 100)}%`;
+
+        soundManager.playExplode();
+      };
+
+      btnTarget.addEventListener('pointerdown', handleTap);
+
+      const startTime = performance.now();
+      const interval = setInterval(() => {
+        const elapsed = (performance.now() - startTime) / 1000;
+        timeLeft = Math.max(0, 3.0 - elapsed);
+        if (elTimer) elTimer.textContent = `${timeLeft.toFixed(1)}s`;
+
+        if (timeLeft <= 0) {
+          clearInterval(interval);
+          btnTarget.removeEventListener('pointerdown', handleTap);
+          const finalBonus = Math.floor(tapCount * 1.5);
+
+          setTimeout(() => {
+            modal.classList.add('hidden');
+            resolve(finalBonus);
+          }, 600);
+        }
+      }, 50);
+    });
+  }
+
+  // =============================================
   // 🥫 貓草罐頭主動技能邏輯 (Active Treat Skill)
   // =============================================
   updateTreatEnergyDisplay() {
@@ -1362,10 +1420,17 @@ class GameApp {
         });
       }
 
-      // 🎬 Play 貓皇降臨 cinematic AFTER forEach (must be outside to use await)
+      // 🎬 Play 貓皇覺醒 (Tap Minigame + Cinematic) AFTER forEach
       if (godMaleTriggered) {
+        // ⚡ 1. 觸發 3 秒手動狂點 Mini-Game!
+        const bonusMult = await this.triggerTapMinigame();
+        if (bonusMult > 0) {
+          this.engine.lockedMultiplierVal += bonusMult;
+        }
+
+        // 🎬 2. 播放貓皇降臨 cinematic
         await this.triggerCatEmperorCinematic();
-        this.triggerShake(22, 30);
+        this.triggerShake(25, 35);
       }
 
       this.uiManager.setWinAmount(spinTotalWin);
@@ -1432,7 +1497,7 @@ class GameApp {
       await this.triggerFullscreenBigWin(finalSpinPayout);
     }
 
-    if (finalSpinPayout >= this.engine.getBet() * 3) {
+    if (finalSpinPayout >= this.engine.getBet() * 5) {
       await this.triggerGambleModal(finalSpinPayout);
     }
 
