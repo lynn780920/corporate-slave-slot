@@ -478,12 +478,18 @@ class GameApp {
       const btnStart = document.getElementById('btn-gamble-start');
       const card1 = document.getElementById('card-option-1');
       const card2 = document.getElementById('card-option-2');
+      const img1 = document.getElementById('card-img-1');
+      const img2 = document.getElementById('card-img-2');
 
       if (!modal || !elWin) { resolve(); return; }
 
       // 暫停自動旋轉，確保玩家能主動參與博弈
       this.engine.autoSpinCount = 0;
       this.uiManager.updateDisplay();
+
+      // 重置卡片封面為 3D 金色背牌
+      if (img1) img1.src = './assets/card_back.png';
+      if (img2) img2.src = './assets/card_back.png';
 
       elWin.textContent = `$${currentWin.toFixed(2)}`;
       choiceContainer.classList.remove('hidden');
@@ -504,22 +510,31 @@ class GameApp {
         cardsContainer.classList.remove('hidden');
       };
 
-      const handleFlipCard = () => {
+      const handleFlipCard = (selectedCardNum) => {
         card1.onclick = null;
         card2.onclick = null;
 
         const win = Math.random() < 0.5;
         resultMsg.classList.remove('hidden');
 
+        const chosenImg = selectedCardNum === 1 ? img1 : img2;
+        const otherImg = selectedCardNum === 1 ? img2 : img1;
+
         if (win) {
-          resultMsg.className = 'text-2xl font-black my-4 text-emerald-400 drop-shadow-[0_0_15px_rgba(52,211,153,0.9)]';
-          resultMsg.textContent = `🎉 翻中【佛心老闆】！贏分翻倍：+$${currentWin.toFixed(2)}！`;
+          if (chosenImg) chosenImg.src = './assets/kind_boss_card.png';
+          if (otherImg) otherImg.src = './assets/black_boss_card.png';
+
+          resultMsg.className = 'text-2xl font-black my-4 text-emerald-400 drop-shadow-[0_0_20px_rgba(52,211,153,0.9)]';
+          resultMsg.textContent = `🎉 翻中【佛心老闆 2x】！贏分翻倍：+$${currentWin.toFixed(2)}！`;
           this.engine.balance += currentWin;
           this.engine.saveAccountBalance();
           soundManager.playBigWin();
         } else {
-          resultMsg.className = 'text-2xl font-black my-4 text-rose-500 drop-shadow-[0_0_15px_rgba(244,63,94,0.9)]';
-          resultMsg.textContent = `😭 翻中【黑心老闆】！本局贏分被沒收！`;
+          if (chosenImg) chosenImg.src = './assets/black_boss_card.png';
+          if (otherImg) otherImg.src = './assets/kind_boss_card.png';
+
+          resultMsg.className = 'text-2xl font-black my-4 text-rose-500 drop-shadow-[0_0_20px_rgba(244,63,94,0.9)]';
+          resultMsg.textContent = `😭 翻中【黑心老闆 0x】！本局贏分沒收！`;
           this.engine.balance = Math.max(0, this.engine.balance - currentWin);
           this.engine.saveAccountBalance();
           soundManager.playExplode();
@@ -529,11 +544,11 @@ class GameApp {
           modal.classList.add('hidden');
           this.uiManager.updateDisplay();
           resolve();
-        }, 1800);
+        }, 2200);
       };
 
-      card1.onclick = handleFlipCard;
-      card2.onclick = handleFlipCard;
+      card1.onclick = () => handleFlipCard(1);
+      card2.onclick = () => handleFlipCard(2);
     });
   }
 

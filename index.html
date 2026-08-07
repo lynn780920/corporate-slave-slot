@@ -231,47 +231,53 @@
     </div>
   </div>
 
-  <!-- 🃏 加班賭一把 雙倍博弈 Modal (贏分 >= 50x 注額時觸發) -->
+  <!-- 🃏 加班賭一把 雙倍博弈 Modal (黑心老闆 0x vs 佛心老闆 2x 3D 牌藝卡片) -->
   <div id="modal-gamble" class="hidden fixed inset-0 z-[190] flex items-center justify-center bg-black/90 backdrop-blur-md p-4">
-    <div class="relative bg-gradient-to-b from-slate-900 via-slate-950 to-black border-4 border-amber-400 rounded-3xl p-6 sm:p-8 max-w-lg w-full text-center shadow-[0_0_70px_rgba(251,191,36,0.6)]">
-      <h2 class="text-2xl sm:text-4xl font-black text-amber-300 mb-2 drop-shadow-[0_0_15px_rgba(245,158,11,0.9)]">
-        🃏 加班賭一把 翻倍博弈！
+    <div class="relative bg-gradient-to-b from-slate-900 via-slate-950 to-black border-4 border-amber-400 rounded-3xl p-6 sm:p-8 max-w-xl w-full text-center shadow-[0_0_80px_rgba(251,191,36,0.7)]">
+      <h2 class="text-2xl sm:text-4xl font-black text-amber-300 mb-1 drop-shadow-[0_0_15px_rgba(245,158,11,0.9)]">
+        🃏 加班賭一把 雙倍博弈！
       </h2>
-      <p class="text-xs sm:text-sm text-amber-200/90 mb-4">
-        大爆發！單局贏分超過 50 倍注額！選擇【加班賭一把】二選一翻牌！
+      <p class="text-xs sm:text-sm text-amber-200/90 mb-4 font-bold">
+        【領錢下班】落袋為安，或是【加班賭一把】二選一翻牌！翻中佛心老闆獎金 2x 翻倍！
       </p>
 
-      <div class="my-4 bg-slate-900/90 border border-amber-500/40 rounded-2xl p-4 shadow-inner">
-        <span class="text-xs text-amber-400 font-bold block mb-1">當前獎金：</span>
+      <div class="my-3 bg-slate-900/90 border border-amber-500/40 rounded-2xl p-4 shadow-inner">
+        <span class="text-xs text-amber-400 font-bold block mb-1">當前累積獎金：</span>
         <span id="gamble-current-win" class="text-3xl sm:text-5xl font-black text-emerald-400 drop-shadow-[0_0_20px_rgba(52,211,153,0.8)]">$0.00</span>
       </div>
 
       <!-- Gamble Action Buttons (Before Flip) -->
       <div id="gamble-choice-container" class="grid grid-cols-2 gap-4 my-6">
-        <button id="btn-gamble-cashout" class="py-4 px-4 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-800 border-2 border-emerald-300 text-white font-black text-lg hover:scale-105 shadow-xl transition-all">
-          💰 領錢下班<br><span class="text-xs font-normal opacity-80">(直接領取獎金)</span>
+        <button id="btn-gamble-cashout" class="py-4 px-4 rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-700 to-emerald-800 border-2 border-emerald-300 text-white font-black text-lg hover:scale-105 shadow-xl transition-all">
+          💰 領錢下班<br><span class="text-xs font-normal opacity-90">(直接把錢帶走)</span>
         </button>
         <button id="btn-gamble-start" class="py-4 px-4 rounded-2xl gold-btn text-slate-950 font-black text-lg hover:scale-105 shadow-xl transition-all">
-          🃏 加班賭一把！<br><span class="text-xs font-normal opacity-90">(二選一翻倍 2x)</span>
+          🃏 加班賭一把！<br><span class="text-xs font-normal opacity-90">(二選一 2x 翻倍)</span>
         </button>
       </div>
 
-      <!-- Cards Container (Hidden until gamble started) -->
+      <!-- 3D Realistic Cards Container (Hidden until gamble started) -->
       <div id="gamble-cards-container" class="hidden my-6">
-        <p class="text-xs text-amber-300 font-bold mb-3">請手動選擇一張卡片翻牌：</p>
-        <div class="grid grid-cols-2 gap-4">
-          <div id="card-option-1" class="cursor-pointer bg-amber-950/80 border-2 border-amber-400 hover:border-amber-200 rounded-2xl p-6 transition-all hover:scale-105 shadow-2xl flex flex-col items-center">
-            <span class="text-4xl mb-2">💼</span>
-            <span class="font-black text-amber-300 text-sm">公事包 A</span>
+        <p class="text-xs sm:text-sm text-amber-300 font-bold mb-4">請點擊選擇一張二選一打卡卡片：</p>
+        <div class="grid grid-cols-2 gap-6 max-w-md mx-auto">
+          <!-- Card Option 1 -->
+          <div id="card-option-1" class="group cursor-pointer relative aspect-[3/4] rounded-2xl overflow-hidden border-4 border-amber-400 hover:border-amber-200 shadow-[0_0_30px_rgba(245,158,11,0.6)] hover:scale-105 transition-all">
+            <img id="card-img-1" src="./assets/card_back.png" class="w-full h-full object-cover transition-all duration-500 group-hover:brightness-110" alt="二選一卡片 1" />
+            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end justify-center p-2">
+              <span class="font-black text-sm text-amber-300 tracking-wider">打卡卡片 A</span>
+            </div>
           </div>
-          <div id="card-option-2" class="cursor-pointer bg-amber-950/80 border-2 border-amber-400 hover:border-amber-200 rounded-2xl p-6 transition-all hover:scale-105 shadow-2xl flex flex-col items-center">
-            <span class="text-4xl mb-2">📁</span>
-            <span class="font-black text-amber-300 text-sm">公事包 B</span>
+          <!-- Card Option 2 -->
+          <div id="card-option-2" class="group cursor-pointer relative aspect-[3/4] rounded-2xl overflow-hidden border-4 border-amber-400 hover:border-amber-200 shadow-[0_0_30px_rgba(245,158,11,0.6)] hover:scale-105 transition-all">
+            <img id="card-img-2" src="./assets/card_back.png" class="w-full h-full object-cover transition-all duration-500 group-hover:brightness-110" alt="二選一卡片 2" />
+            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end justify-center p-2">
+              <span class="font-black text-sm text-amber-300 tracking-wider">打卡卡片 B</span>
+            </div>
           </div>
         </div>
       </div>
 
-      <div id="gamble-result-msg" class="hidden text-xl font-black my-4"></div>
+      <div id="gamble-result-msg" class="hidden text-xl sm:text-2xl font-black my-4"></div>
     </div>
   </div>
 
