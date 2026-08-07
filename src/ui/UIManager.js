@@ -1,4 +1,5 @@
 import { soundManager } from '../logic/SoundManager.js';
+import { accountManager } from '../logic/AccountManager.js';
 
 export class UIManager {
   constructor(engine, onSpinTriggered, onBuyFeatureTriggered) {
@@ -25,6 +26,16 @@ export class UIManager {
     this.elInfoBtn = document.getElementById('btn-info');
     this.elInfoModal = document.getElementById('modal-info');
     this.elCloseInfoBtn = document.getElementById('btn-close-info');
+
+    // Account DOM References
+    this.elUsername = document.getElementById('ui-username');
+    this.elBtnAccountSwitch = document.getElementById('btn-account-switch');
+    this.elModalAccount = document.getElementById('modal-account');
+    this.elBtnCloseAccount = document.getElementById('btn-close-account');
+    this.elSelectUser = document.getElementById('select-user');
+    this.elBtnDoLogin = document.getElementById('btn-do-login');
+    this.elInputNewUsername = document.getElementById('input-new-username');
+    this.elBtnDoRegister = document.getElementById('btn-do-register');
 
     // Fullscreen Big Win Overlay References
     this.elFsBigWinOverlay = document.getElementById('fullscreen-bigwin-overlay');
@@ -110,7 +121,7 @@ export class UIManager {
     if (this.elSoundBtn) {
       this.elSoundBtn.addEventListener('click', (e) => {
         e.preventDefault();
-        const muted = soundManager.toggleMute();
+        soundManager.toggleMute();
       });
     }
 
@@ -128,12 +139,71 @@ export class UIManager {
       });
     }
 
+    // Account Modal Bindings
+    if (this.elBtnAccountSwitch) {
+      this.elBtnAccountSwitch.addEventListener('click', (e) => {
+        e.preventDefault();
+        this.populateAccountDropdown();
+        if (this.elModalAccount) this.elModalAccount.classList.remove('hidden');
+      });
+    }
+    if (this.elBtnCloseAccount) {
+      this.elBtnCloseAccount.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (this.elModalAccount) this.elModalAccount.classList.add('hidden');
+      });
+    }
+    if (this.elBtnDoLogin) {
+      this.elBtnDoLogin.addEventListener('click', (e) => {
+        e.preventDefault();
+        const selected = this.elSelectUser.value;
+        if (selected) {
+          accountManager.login(selected);
+          this.engine.syncBalanceWithAccount();
+          this.updateDisplay();
+          if (this.elModalAccount) this.elModalAccount.classList.add('hidden');
+          alert(`歡迎回來，${selected}！已載入您的專屬餘額：$${this.engine.balance.toLocaleString()}`);
+        }
+      });
+    }
+    if (this.elBtnDoRegister) {
+      this.elBtnDoRegister.addEventListener('click', (e) => {
+        e.preventDefault();
+        const inputName = this.elInputNewUsername.value.trim();
+        if (!inputName) {
+          alert('請輸入玩家暱稱！');
+          return;
+        }
+        accountManager.register(inputName, 10000);
+        this.engine.syncBalanceWithAccount();
+        this.updateDisplay();
+        if (this.elModalAccount) this.elModalAccount.classList.add('hidden');
+        this.elInputNewUsername.value = '';
+        alert(`註冊成功！新玩家 [${inputName}] 已登入，獲得初始籌碼 $10,000！`);
+      });
+    }
+
     if (this.elBtnCloseFsBigWin) {
       this.elBtnCloseFsBigWin.addEventListener('click', (e) => {
         e.preventDefault();
         if (this.elFsBigWinOverlay) this.elFsBigWinOverlay.classList.add('hidden');
       });
     }
+  }
+
+  populateAccountDropdown() {
+    if (!this.elSelectUser) return;
+    this.elSelectUser.innerHTML = '';
+    const users = accountManager.getUserList();
+    users.forEach(u => {
+      const opt = document.createElement('option');
+      opt.value = u.username;
+      opt.textContent = `${u.username} (餘額: $${u.balance.toLocaleString()})`;
+      if (accountManager.currentUser && accountManager.currentUser.username === u.username) {
+        opt.selected = true;
+      }
+      this.elSelectUser.appendChild(opt);
+    });
   }
 
   updateAutoSpinDisplay() {
@@ -149,6 +219,12 @@ export class UIManager {
   }
 
   updateDisplay() {
+    // Save current balance to persistent account storage
+    this.engine.saveAccountBalance();
+
+    if (this.elUsername && accountManager.currentUser) {
+      this.elUsername.textContent = accountManager.currentUser.username;
+    }
     if (this.elBalance) this.elBalance.textContent = `$${this.engine.balance.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
     if (this.elBetAmount) this.elBetAmount.textContent = `$${this.engine.getBet()}`;
     const buyCost = this.engine.getBet() * 100;

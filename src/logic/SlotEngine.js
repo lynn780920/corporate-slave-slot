@@ -3,19 +3,21 @@
  * Pay Anywhere (8+ Match), Tumble Cascading, Multipliers (2x-500x), Free Spins & Authentic Commercial RTP Math
  */
 
+import { accountManager } from './AccountManager.js';
+
 export const SYMBOLS = {
-  EYE: 'eye',                 // 續命熱咖啡 (High 1)
-  SCEPTER: 'scepter',         // 08:00 毀滅鬧鐘 (High 2)
-  BOW: 'bow',                 // 社畜識別證 (High 3)
-  SWORD: 'sword',             // 爆汗蠻牛提神飲料 (High 4)
-  GEM_ORANGE: 'gem_orange',   // 人體工學椅 (Mid 1)
-  GEM_RED: 'gem_red',         // 加班泡麵 (Mid 2)
-  GEM_PURPLE: 'gem_purple',   // 辦公訂書機 (Low 1)
-  GEM_BLUE: 'gem_blue',       // RGB 機械鍵盤 (Low 2)
-  GEM_GREEN: 'gem_green',     // 辦公水壺 (Low 3)
-  GOD_MALE: 'god_male',       // 魔鬼老闆 (老闆覺醒)
-  GOD_FEMALE: 'god_female',   // 嚴厲 HR (HR覺醒)
-  SCATTER: 'scatter',         // 爆肝特休筆電 SCATTER
+  EYE: 'eye',                 // 貓貓總裁 (High 1)
+  SCEPTER: 'scepter',         // 柴犬 HR (High 2)
+  BOW: 'bow',                 // 柯基會計 (High 3)
+  SWORD: 'sword',             // 法鬥碼農 (High 4)
+  GEM_ORANGE: 'gem_orange',   // 金毛業務 (Mid 1)
+  GEM_RED: 'gem_red',         // 巴哥加班犬 (Mid 2)
+  GEM_PURPLE: 'gem_purple',   // 花貓實習生 (Low 1)
+  GEM_BLUE: 'gem_blue',       // 英短設計 (Low 2)
+  GEM_GREEN: 'gem_green',     // 橘貓客服 (Low 3)
+  GOD_MALE: 'god_male',       // 貓神總裁
+  GOD_FEMALE: 'god_female',   // 犬神 HR
+  SCATTER: 'scatter',         // 特休筆電 SCATTER
   MULTIPLIER: 'multiplier'   // 加倍寶珠
 };
 
@@ -38,7 +40,7 @@ export class SlotEngine {
   constructor() {
     this.cols = 6;
     this.rows = 5;
-    this.balance = 10000;
+    this.balance = accountManager.currentUser ? accountManager.currentUser.balance : 10000;
     this.betSizes = [10, 20, 50, 100, 200, 500, 1000, 2000, 5000];
     this.currentBetIdx = 3; // Default $100
     this.currentBet = this.betSizes[this.currentBetIdx];
@@ -56,6 +58,16 @@ export class SlotEngine {
     this.nextSymbolId = 1;
 
     this.initializeGrid();
+  }
+
+  syncBalanceWithAccount() {
+    if (accountManager.currentUser) {
+      this.balance = accountManager.currentUser.balance;
+    }
+  }
+
+  saveAccountBalance() {
+    accountManager.updateBalance(this.balance);
   }
 
   getBet() {
@@ -80,7 +92,6 @@ export class SlotEngine {
     }
   }
 
-  // Commercial Casino Math Weights (Authentic Volatility Model)
   generateRandomSymbol(forceScatter = false) {
     const id = this.nextSymbolId++;
     if (forceScatter) {
@@ -89,37 +100,29 @@ export class SlotEngine {
 
     const rand = Math.random();
     
-    // 4% chance of Multiplier Orb
     if (rand < 0.04) {
       const multVal = this.getRandomMultiplierValue();
       return { type: SYMBOLS.MULTIPLIER, id, multiplierVal: multVal };
     }
 
-    // 3.5% chance of Scatter
     if (rand < 0.075) {
       return { type: SYMBOLS.SCATTER, id, multiplierVal: 0 };
     }
 
-    // 2% chance of Boss Awakening
     if (rand < 0.095) {
       return { type: SYMBOLS.GOD_MALE, id, multiplierVal: 0 };
     }
 
-    // 2% chance of HR Awakening
     if (rand < 0.115) {
       return { type: SYMBOLS.GOD_FEMALE, id, multiplierVal: 0 };
     }
 
-    // Weighted Regular Pay Symbols (Higher weight for low pay, lower for high pay)
     const weightedTypes = [
-      // Low Pay (Frequent)
       SYMBOLS.GEM_GREEN, SYMBOLS.GEM_GREEN, SYMBOLS.GEM_GREEN, SYMBOLS.GEM_GREEN, SYMBOLS.GEM_GREEN,
       SYMBOLS.GEM_BLUE, SYMBOLS.GEM_BLUE, SYMBOLS.GEM_BLUE, SYMBOLS.GEM_BLUE,
       SYMBOLS.GEM_PURPLE, SYMBOLS.GEM_PURPLE, SYMBOLS.GEM_PURPLE,
-      // Mid Pay
       SYMBOLS.GEM_RED, SYMBOLS.GEM_RED,
       SYMBOLS.GEM_ORANGE, SYMBOLS.GEM_ORANGE,
-      // High Pay (Rare)
       SYMBOLS.SWORD,
       SYMBOLS.BOW,
       SYMBOLS.SCEPTER,
