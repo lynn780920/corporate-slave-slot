@@ -104,8 +104,9 @@ class GameApp {
     const assetList = [
       'eye', 'scepter', 'bow', 'sword', 
       'gem_orange', 'gem_red', 'gem_purple', 'gem_blue', 'gem_green',
-      'scatter', 'god_male', 'god_female', 'chairman_cat', 'gm_husky',
-      'multiplier', 'mult_green', 'mult_blue', 'mult_purple', 'bg_gods'
+      'scatter', 'god_male', 'chairman_cat',
+      'multiplier', 'mult_green', 'mult_blue', 'mult_purple', 'bg_gods',
+      'cat_emperor_cinematic'
     ];
 
     const baseUrl = (typeof import.meta !== 'undefined' && import.meta && import.meta.env && import.meta.env.BASE_URL) ? import.meta.env.BASE_URL : './';
@@ -134,6 +135,140 @@ class GameApp {
       this.fsCanvas.width = window.innerWidth;
       this.fsCanvas.height = window.innerHeight;
     }
+  }
+
+  triggerCatEmperorCinematic() {
+    return new Promise(resolve => {
+      const overlay = document.getElementById('cat-emperor-cinematic');
+      const cnv = document.getElementById('cinematic-canvas');
+      if (!overlay || !cnv) { resolve(); return; }
+
+      overlay.classList.remove('hidden');
+      cnv.width = window.innerWidth;
+      cnv.height = window.innerHeight;
+      const ctx = cnv.getContext('2d');
+      const W = cnv.width, H = cnv.height;
+      const catEmpImg = this.loadedImages['cat_emperor_cinematic'];
+      const catImg    = this.loadedImages['chairman_cat'];
+
+      let frame = 0;
+      const TOTAL = 230;
+
+      const particles = [];
+      for (let i = 0; i < 200; i++) {
+        particles.push({
+          x: W / 2 + (Math.random() - 0.5) * W,
+          y: H * 0.6 + (Math.random() - 0.5) * H * 0.6,
+          vx: (Math.random() - 0.5) * 7,
+          vy: -2 - Math.random() * 9,
+          size: 2 + Math.random() * 7,
+          alpha: 0.7 + Math.random() * 0.3,
+          color: Math.random() < 0.6 ? '#fde047' : (Math.random() < 0.5 ? '#f59e0b' : '#fff'),
+          decay: 0.007 + Math.random() * 0.01
+        });
+      }
+
+      const cracks = Array.from({length: 14}, (_, i) => {
+        const a = (i / 14) * Math.PI * 2 + (Math.random() - 0.5) * 0.4;
+        const len = 60 + Math.random() * Math.min(W, H) * 0.42;
+        return { x1: W/2, y1: H/2, x2: W/2 + Math.cos(a)*len, y2: H/2 + Math.sin(a)*len, w: 1.5 + Math.random()*3 };
+      });
+
+      const doFrame = () => {
+        const t = frame / TOTAL;
+        ctx.clearRect(0, 0, W, H);
+        ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H);
+
+        // Cinematic backdrop
+        if (catEmpImg && t > 0.04) {
+          ctx.globalAlpha = Math.min(1, (t - 0.04) / 0.22);
+          const sc = Math.max(W / catEmpImg.width, H / catEmpImg.height);
+          ctx.drawImage(catEmpImg, (W - catEmpImg.width*sc)/2, (H - catEmpImg.height*sc)/2, catEmpImg.width*sc, catEmpImg.height*sc);
+          ctx.globalAlpha = 1;
+        }
+
+        // Vignette
+        const vig = ctx.createRadialGradient(W/2,H/2,H*0.18,W/2,H/2,H*0.88);
+        vig.addColorStop(0,'rgba(0,0,0,0)'); vig.addColorStop(1,'rgba(0,0,0,0.8)');
+        ctx.fillStyle = vig; ctx.fillRect(0,0,W,H);
+
+        // Cracks
+        if (t > 0.04 && t < 0.52) {
+          const ca = t < 0.32 ? Math.min(1,(t-0.04)/0.14) : 1-(t-0.32)/0.2;
+          ctx.globalAlpha = ca;
+          cracks.forEach(cr => {
+            ctx.save(); ctx.strokeStyle='#fde047'; ctx.lineWidth=cr.w;
+            ctx.shadowColor='#f59e0b'; ctx.shadowBlur=18;
+            ctx.beginPath(); ctx.moveTo(cr.x1,cr.y1); ctx.lineTo(cr.x2,cr.y2); ctx.stroke();
+            ctx.restore();
+          });
+          ctx.globalAlpha=1;
+        }
+
+        // Cat avatar descending
+        if (catImg && t > 0.14) {
+          const ct = Math.min(1,(t-0.14)/0.3);
+          const ease = 1 - Math.pow(1-ct, 3);
+          const sz = Math.min(W,H) * 0.38;
+          const px = W/2 - sz/2;
+          const py = (-sz) + (H/2 - sz*0.5 - (-sz)) * ease;
+          ctx.save();
+          ctx.globalAlpha = Math.min(1, ct * 2.5);
+          // Aura glow
+          const aura = ctx.createRadialGradient(W/2,py+sz/2,0,W/2,py+sz/2,sz*0.85);
+          aura.addColorStop(0,'rgba(253,224,71,0.75)'); aura.addColorStop(0.5,'rgba(245,158,11,0.3)'); aura.addColorStop(1,'rgba(0,0,0,0)');
+          ctx.fillStyle=aura; ctx.beginPath(); ctx.arc(W/2,py+sz/2,sz*0.85,0,Math.PI*2); ctx.fill();
+          ctx.shadowColor='#fde047'; ctx.shadowBlur=55;
+          ctx.drawImage(catImg, px, py, sz, sz);
+          ctx.restore();
+        }
+
+        // Particles
+        particles.forEach(p => {
+          p.x+=p.vx; p.y+=p.vy; p.alpha-=p.decay;
+          if (p.alpha>0) {
+            ctx.save(); ctx.globalAlpha=p.alpha; ctx.fillStyle=p.color;
+            ctx.shadowColor=p.color; ctx.shadowBlur=9;
+            ctx.beginPath(); ctx.arc(p.x,p.y,p.size,0,Math.PI*2); ctx.fill();
+            ctx.restore();
+          }
+        });
+
+        // Title: 貓皇降臨
+        if (t > 0.38) {
+          const tt = Math.min(1,(t-0.38)/0.12);
+          const ta = t > 0.84 ? Math.max(0, 1-(t-0.84)/0.13) : tt;
+          const fs = Math.floor(Math.min(W,H) * 0.12 * (0.55 + tt*0.45));
+          ctx.save(); ctx.globalAlpha = ta;
+          ctx.textAlign='center'; ctx.textBaseline='middle';
+          ctx.shadowColor='#f59e0b'; ctx.shadowBlur=50;
+          ctx.font = `900 ${fs}px 'Noto Serif TC', serif`;
+          ctx.strokeStyle='#78350f'; ctx.lineWidth=fs*0.065;
+          ctx.strokeText('貓皇降臨', W/2, H*0.74);
+          const g = ctx.createLinearGradient(W/2-180,0,W/2+180,0);
+          g.addColorStop(0,'#fde047'); g.addColorStop(0.4,'#ffffff'); g.addColorStop(0.65,'#fde047'); g.addColorStop(1,'#f59e0b');
+          ctx.fillStyle=g; ctx.fillText('貓皇降臨', W/2, H*0.74);
+          ctx.shadowBlur=18;
+          ctx.font=`700 ${Math.floor(fs*0.28)}px 'Noto Serif TC',serif`;
+          ctx.fillStyle='rgba(253,224,71,0.92)';
+          ctx.fillText('⚡ 所有倍數球 × 2 倍翻倍！⚡', W/2, H*0.74 + fs*0.72);
+          ctx.restore();
+        }
+
+        // White flash intro
+        if (t < 0.07) {
+          ctx.save(); ctx.globalAlpha = 1 - t/0.07;
+          ctx.fillStyle='#fff'; ctx.fillRect(0,0,W,H);
+          ctx.restore();
+        }
+
+        frame++;
+        if (frame < TOTAL) requestAnimationFrame(doFrame);
+        else { overlay.classList.add('hidden'); resolve(); }
+      };
+
+      requestAnimationFrame(doFrame);
+    });
   }
 
   spawnExplosion(x, y, color = '#fde047', count = 40) {
@@ -1020,58 +1155,22 @@ class GameApp {
       soundManager.playExplode();
 
       const winPositions = [];
-      evalResult.winningGroups.forEach(group => {
+      let godMaleTriggered = false;
+
+      for (const group of evalResult.winningGroups) {
         if (group.type === SYMBOLS.GOD_MALE) {
-          const firstPos = group.positions[0];
-          const x = firstPos.col * (this.cellSize + this.cellGap) + this.cellGap + this.cellSize / 2;
-          const y = firstPos.row * (this.cellSize + this.cellGap) + this.cellGap + this.cellSize / 2;
-          
           if (this.engine.lockedMultiplierVal > 0) {
             this.engine.lockedMultiplierVal *= 2;
           }
-
-          // Double multiplier values on all grid orbs & shoot lightning laser beams!
+          // Double all multiplier orbs on grid
           for (let c = 0; c < this.cols; c++) {
             for (let r = 0; r < this.rows; r++) {
               if (this.engine.grid[c][r] && this.engine.grid[c][r].type === SYMBOLS.MULTIPLIER) {
                 this.engine.grid[c][r].multiplierVal *= 2;
-                const orbX = c * (this.cellSize + this.cellGap) + this.cellGap + this.cellSize / 2;
-                const orbY = r * (this.cellSize + this.cellGap) + this.cellGap + this.cellSize / 2;
-                this.spawnMultiplierLaserBeam(x, y, orbX, orbY, this.engine.grid[c][r].multiplierVal);
-                this.spawnShockwave(orbX, orbY);
               }
             }
           }
-
-          this.godFlashAlpha = 0.85;
-          this.godFlashColor = 'rgba(253, 224, 71, 0.4)';
-          this.triggerShake(22, 30);
-          this.spawnFloatingText(x, y - 40, `👑 力量覺醒！倍數 2 倍翻倍！`);
-          soundManager.playBigWin();
-        } else if (group.type === SYMBOLS.GOD_FEMALE) {
-          const firstPos = group.positions[0];
-          const x = firstPos.col * (this.cellSize + this.cellGap) + this.cellGap + this.cellSize / 2;
-          const y = firstPos.row * (this.cellSize + this.cellGap) + this.cellGap + this.cellSize / 2;
-
-          this.engine.lockedMultiplierSpins = 4; // Active for 3 subsequent spins
-          const baseLock = Math.max(this.engine.lockedMultiplierVal || 0, spinMultiplierSum || 0, 15);
-          this.engine.lockedMultiplierVal = baseLock;
-
-          for (let c = 0; c < this.cols; c++) {
-            for (let r = 0; r < this.rows; r++) {
-              if (this.engine.grid[c][r] && this.engine.grid[c][r].type === SYMBOLS.MULTIPLIER) {
-                const orbX = c * (this.cellSize + this.cellGap) + this.cellGap + this.cellSize / 2;
-                const orbY = r * (this.cellSize + this.cellGap) + this.cellGap + this.cellSize / 2;
-                this.spawnMultiplierLaserBeam(x, y, orbX, orbY, baseLock);
-                this.spawnShockwave(orbX, orbY);
-              }
-            }
-          }
-
-          this.godFlashAlpha = 0.85;
-          this.godFlashColor = 'rgba(56, 189, 248, 0.4)';
-          this.triggerShake(22, 30);
-          this.spawnFloatingText(x, y - 40, `👔 鎖定覺醒！鎖定 ${baseLock}x 保留 3 局！`);
+          godMaleTriggered = true;
           soundManager.playBigWin();
         }
 
@@ -1082,7 +1181,13 @@ class GameApp {
           this.spawnExplosion(x, y);
           this.spawnFloatingText(x, y, `+$${group.payout.toFixed(0)}`);
         });
-      });
+      }
+
+      // 🎬 Play 貓皇降臨 cinematic AFTER forEach (must be outside to use await)
+      if (godMaleTriggered) {
+        await this.triggerCatEmperorCinematic();
+        this.triggerShake(22, 30);
+      }
 
       this.uiManager.setWinAmount(spinTotalWin);
 
