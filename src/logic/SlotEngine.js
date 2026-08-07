@@ -105,27 +105,27 @@ export class SlotEngine {
 
     const rand = Math.random();
     
-    // Multiplier Orbs (3% chance)
-    if (rand < 0.03) {
+    // Multiplier Orbs (5% chance)
+    if (rand < 0.05) {
       const multVal = this.getRandomMultiplierValue();
       return { type: SYMBOLS.MULTIPLIER, id, multiplierVal: multVal };
     }
 
-    // SCATTER (3.2% chance)
-    if (rand < 0.062) {
+    // SCATTER (4% chance)
+    if (rand < 0.09) {
       return { type: SYMBOLS.SCATTER, id, multiplierVal: 0 };
     }
 
-    // High God Symbols (2% chance each)
-    if (rand < 0.082) return { type: SYMBOLS.GOD_MALE, id, multiplierVal: 0 };
-    if (rand < 0.102) return { type: SYMBOLS.GOD_FEMALE, id, multiplierVal: 0 };
+    // High Symbols
+    if (rand < 0.11) return { type: SYMBOLS.GOD_MALE, id, multiplierVal: 0 };
+    if (rand < 0.13) return { type: SYMBOLS.GOD_FEMALE, id, multiplierVal: 0 };
 
-    // Balanced 9 Standard Symbols Distribution for ~22% Natural Hit Rate
-    const allSymbols = [
-      SYMBOLS.GEM_GREEN,
-      SYMBOLS.GEM_BLUE,
-      SYMBOLS.GEM_PURPLE,
-      SYMBOLS.GEM_RED,
+    // Weighted standard symbols for ~35% natural hit rate
+    const weightedSymbols = [
+      SYMBOLS.GEM_GREEN, SYMBOLS.GEM_GREEN, SYMBOLS.GEM_GREEN,
+      SYMBOLS.GEM_BLUE, SYMBOLS.GEM_BLUE, SYMBOLS.GEM_BLUE,
+      SYMBOLS.GEM_PURPLE, SYMBOLS.GEM_PURPLE,
+      SYMBOLS.GEM_RED, SYMBOLS.GEM_RED,
       SYMBOLS.GEM_ORANGE,
       SYMBOLS.SWORD,
       SYMBOLS.BOW,
@@ -133,7 +133,7 @@ export class SlotEngine {
       SYMBOLS.EYE
     ];
 
-    const chosenType = allSymbols[Math.floor(Math.random() * allSymbols.length)];
+    const chosenType = weightedSymbols[Math.floor(Math.random() * weightedSymbols.length)];
     return { type: chosenType, id, multiplierVal: 0 };
   }
 

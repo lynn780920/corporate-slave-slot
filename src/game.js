@@ -721,6 +721,7 @@ class GameApp {
         this.uiManager.setMultiplierDisplay(1);
       } else {
         this.engine.freeSpinsRemaining--;
+        this.uiManager.setMultiplierDisplay(Math.max(1, this.engine.globalMultiplierPool));
       }
 
       this.uiManager.updateDisplay();
