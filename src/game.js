@@ -960,7 +960,7 @@ class GameApp {
       this.uiManager.updateDisplay();
       soundManager.playSpin();
 
-      this.engine.generateSpinGrid(false);
+      this.engine.generateSpinGrid(false, this.engine.lockedMultiplierSpins > 0);
 
       await this.animateStaggeredDrop();
       await this.runTurnLoop();
@@ -1125,10 +1125,13 @@ class GameApp {
         if (group.type === SYMBOLS.GOD_MALE) {
           // 鎖定 3 局倍率 + 倍數球 2 倍翻倍
           this.engine.lockedMultiplierSpins = 4;
+          const currentOrbs = this.engine.getMultiplierOrbs();
+          const currentOrbsSum = currentOrbs.reduce((sum, o) => sum + o.val, 0);
+
           if (this.engine.lockedMultiplierVal > 0) {
             this.engine.lockedMultiplierVal *= 2;
           } else {
-            this.engine.lockedMultiplierVal = Math.max(spinMultiplierSum || 0, 15);
+            this.engine.lockedMultiplierVal = Math.max(currentOrbsSum * 2, 20);
           }
 
           // Double all multiplier orbs on grid

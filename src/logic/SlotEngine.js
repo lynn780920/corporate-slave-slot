@@ -99,7 +99,7 @@ export class SlotEngine {
     }
   }
 
-  generateRandomSymbol(forceScatter = false) {
+  generateRandomSymbol(forceScatter = false, featuredSymbol = null, featureWeightChance = 0.25) {
     const id = this.nextSymbolId++;
     if (forceScatter) {
       return { type: SYMBOLS.SCATTER, id, multiplierVal: 0 };
@@ -107,19 +107,24 @@ export class SlotEngine {
 
     const rand = Math.random();
     
-    // Multiplier Orbs (5% chance)
-    if (rand < 0.05) {
+    // Multiplier Orbs (10% chance - frequent & exciting!)
+    if (rand < 0.10) {
       const multVal = this.getRandomMultiplierValue();
       return { type: SYMBOLS.MULTIPLIER, id, multiplierVal: multVal };
     }
 
     // SCATTER (4% chance)
-    if (rand < 0.09) {
+    if (rand < 0.14) {
       return { type: SYMBOLS.SCATTER, id, multiplierVal: 0 };
     }
 
     // 董事長貓皇 (8.5% spawn chance)
-    if (rand < 0.175) return { type: SYMBOLS.GOD_MALE, id, multiplierVal: 0 };
+    if (rand < 0.225) return { type: SYMBOLS.GOD_MALE, id, multiplierVal: 0 };
+
+    // Featured symbol weighting for higher natural hit rate (~38%)
+    if (featuredSymbol && Math.random() < featureWeightChance) {
+      return { type: featuredSymbol, id, multiplierVal: 0 };
+    }
 
     // Weighted standard symbols
     const weightedSymbols = [
@@ -140,21 +145,26 @@ export class SlotEngine {
 
   getRandomMultiplierValue() {
     const rand = Math.random();
-    if (rand < 0.82) return [2, 3, 4, 5][Math.floor(Math.random() * 4)];
-    if (rand < 0.96) return [8, 10, 12, 15][Math.floor(Math.random() * 4)];
-    if (rand < 0.998) return [20, 25, 35][Math.floor(Math.random() * 3)];
+    if (rand < 0.75) return [2, 3, 4, 5][Math.floor(Math.random() * 4)];
+    if (rand < 0.93) return [8, 10, 12, 15][Math.floor(Math.random() * 4)];
+    if (rand < 0.99) return [20, 25, 35][Math.floor(Math.random() * 3)];
     return [50, 100][Math.floor(Math.random() * 2)];
   }
 
-  generateSpinGrid(isBuyFeature = false) {
+  generateSpinGrid(isBuyFeature = false, forceWin = false) {
     this.grid = [];
     let scatterCount = 0;
+
+    // Pick 1-2 featured symbols for this spin to create natural ~38% hit rate clusters (or ~70% if forceWin)
+    const lowMidPool = [SYMBOLS.GEM_GREEN, SYMBOLS.GEM_BLUE, SYMBOLS.GEM_PURPLE, SYMBOLS.GEM_RED];
+    const featuredSymbol = (forceWin || Math.random() < 0.40) ? lowMidPool[Math.floor(Math.random() * lowMidPool.length)] : null;
+    const featureWeightChance = forceWin ? 0.45 : 0.25;
 
     for (let c = 0; c < this.cols; c++) {
       const col = [];
       for (let r = 0; r < this.rows; r++) {
         const forceScatter = isBuyFeature && scatterCount < 4 && Math.random() < 0.35;
-        const sym = this.generateRandomSymbol(forceScatter);
+        const sym = this.generateRandomSymbol(forceScatter, featuredSymbol, featureWeightChance);
         if (sym.type === SYMBOLS.SCATTER) scatterCount++;
         col.push(sym);
       }
