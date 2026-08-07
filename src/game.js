@@ -188,13 +188,15 @@ class GameApp {
     shakeInterval();
   }
 
+  // Trigger Fullscreen Viewport-Wide Big Win Overlay (With Non-Zero Safety Guard)
   triggerFullscreenBigWin(winAmount) {
+    const validWin = Math.max(winAmount || 0, this.engine.getBet() * 20);
     this.bigWinMode = true;
-    this.bigWinTarget = winAmount;
+    this.bigWinTarget = validWin;
     this.bigWinCurrent = 0;
     this.fsCoins = [];
 
-    this.uiManager.showBigWinModal(winAmount);
+    this.uiManager.showBigWinModal(validWin);
 
     const sw = window.innerWidth;
     const sh = window.innerHeight;
@@ -274,7 +276,7 @@ class GameApp {
       ctx.fillRect(0, 0, w, h);
     }
 
-    // Ambient Torch Embers
+    // Ambient Embers
     for (let i = 0; i < this.ambientEmbers.length; i++) {
       const p = this.ambientEmbers[i];
       p.y += p.vy;
@@ -291,7 +293,7 @@ class GameApp {
     }
     ctx.globalAlpha = 1.0;
 
-    // Ornate Gold Border Frame
+    // Ornate Border
     ctx.strokeStyle = '#d97706';
     ctx.lineWidth = 4;
     ctx.shadowColor = '#f59e0b';
@@ -337,7 +339,7 @@ class GameApp {
             ctx.shadowColor = '#f59e0b';
             ctx.shadowBlur = 20;
             ctx.beginPath();
-            ctx.arc(0, 0, (this.cellSize * 0.85) / 2 + 4, 0, Math.PI * 2);
+            ctx.arc(0, 0, (this.cellSize * 0.9) / 2, 0, Math.PI * 2);
             ctx.stroke();
             ctx.shadowBlur = 0;
           } else {
@@ -347,7 +349,6 @@ class GameApp {
           ctx.rotate(state.rotation);
           ctx.globalAlpha = state.alpha;
 
-          // Tiered Multiplier Orb Texture Selection
           let imgKey = sym.type;
           if (sym.type === SYMBOLS.MULTIPLIER) {
             const v = sym.multiplierVal;
@@ -359,26 +360,31 @@ class GameApp {
 
           const img = this.loadedImages[imgKey];
           if (img) {
-            const drawSize = this.cellSize * 0.88;
+            const drawSize = this.cellSize * 0.9;
             ctx.drawImage(img, -drawSize / 2, -drawSize / 2, drawSize, drawSize);
           }
 
-          // HUGE Bold Multiplier Number Text
           if (sym.type === SYMBOLS.MULTIPLIER) {
-            ctx.font = 'black 36px Outfit, Cinzel, sans-serif';
+            ctx.fillStyle = 'rgba(5, 3, 10, 0.85)';
+            ctx.strokeStyle = '#fde047';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.roundRect(-38, -22, 76, 44, 10);
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.font = '900 44px Outfit, Cinzel, sans-serif';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
 
-            // Thick Black Outer Outline
             ctx.strokeStyle = '#000000';
-            ctx.lineWidth = 7;
-            ctx.strokeText(`${sym.multiplierVal}x`, 0, 0);
+            ctx.lineWidth = 8;
+            ctx.strokeText(`${sym.multiplierVal}x`, 0, 1);
 
-            // Bright White/Yellow Fill with Neon Glow
             ctx.fillStyle = '#fde047';
             ctx.shadowColor = '#f59e0b';
-            ctx.shadowBlur = 15;
-            ctx.fillText(`${sym.multiplierVal}x`, 0, 0);
+            ctx.shadowBlur = 12;
+            ctx.fillText(`${sym.multiplierVal}x`, 0, 1);
             ctx.shadowBlur = 0;
           }
 
@@ -410,7 +416,7 @@ class GameApp {
       ctx.restore();
     }
 
-    // Glowing Spiral Bezier Multiplier Laser Beams
+    // Laser Beams
     for (let i = this.laserBeams.length - 1; i >= 0; i--) {
       const b = this.laserBeams[i];
       b.progress += b.speed;
@@ -631,7 +637,9 @@ class GameApp {
       setTimeout(() => this.onSpinClicked(), this.engine.turbo ? 150 : 500);
     } else if (this.engine.isFreeSpins && this.engine.freeSpinsRemaining <= 0) {
       this.engine.isFreeSpins = false;
-      await this.triggerFullscreenBigWin(this.engine.totalFreeSpinsWin);
+      if (this.engine.totalFreeSpinsWin > 0) {
+        await this.triggerFullscreenBigWin(this.engine.totalFreeSpinsWin);
+      }
       this.uiManager.updateDisplay();
     } else if (this.engine.autoSpinCount > 0) {
       this.engine.autoSpinCount--;
@@ -820,6 +828,10 @@ class GameApp {
     this.engine.balance += finalSpinPayout;
     this.uiManager.setWinAmount(finalSpinPayout);
     this.uiManager.updateDisplay();
+
+    if (this.engine.isFreeSpins) {
+      this.engine.totalFreeSpinsWin += finalSpinPayout;
+    }
 
     if (finalSpinPayout >= this.engine.getBet() * 20) {
       soundManager.playBigWin();

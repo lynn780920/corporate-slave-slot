@@ -1,25 +1,24 @@
 /**
- * Gates of Set 2 (戰神賽特2 覺醒之力) - Slot Engine
- * Pay Anywhere (8+ Match), Tumble Cascading, Multipliers (2x-500x), Awakening Skills & Free Spins
+ * 社畜變賭徒 (Corporate Slave to Gambler) - Slot Engine
+ * Pay Anywhere (8+ Match), Tumble Cascading, Multipliers (2x-500x), Free Spins & Authentic Commercial RTP Math
  */
 
 export const SYMBOLS = {
-  EYE: 'eye',                 // 荷魯斯之眼 (High 1)
-  SCEPTER: 'scepter',         // 權杖 (High 2)
-  BOW: 'bow',                 // 弓箭 (High 3)
-  SWORD: 'sword',             // 彎刀 (High 4)
-  GEM_ORANGE: 'gem_orange',   // 橘寶石 (Mid 1)
-  GEM_RED: 'gem_red',         // 紅寶石 (Mid 2)
-  GEM_PURPLE: 'gem_purple',   // 紫寶石 (Low 1)
-  GEM_BLUE: 'gem_blue',       // 藍寶石 (Low 2)
-  GEM_GREEN: 'gem_green',     // 綠寶石 (Low 3)
-  GOD_MALE: 'god_male',       // 力量覺醒符號
-  GOD_FEMALE: 'god_female',   // 鎖定覺醒符號
-  SCATTER: 'scatter',         // 聖甲蟲 SCATTER
-  MULTIPLIER: 'multiplier'   // 乘數寶珠
+  EYE: 'eye',                 // 續命熱咖啡 (High 1)
+  SCEPTER: 'scepter',         // 08:00 毀滅鬧鐘 (High 2)
+  BOW: 'bow',                 // 社畜識別證 (High 3)
+  SWORD: 'sword',             // 爆汗蠻牛提神飲料 (High 4)
+  GEM_ORANGE: 'gem_orange',   // 人體工學椅 (Mid 1)
+  GEM_RED: 'gem_red',         // 加班泡麵 (Mid 2)
+  GEM_PURPLE: 'gem_purple',   // 辦公訂書機 (Low 1)
+  GEM_BLUE: 'gem_blue',       // RGB 機械鍵盤 (Low 2)
+  GEM_GREEN: 'gem_green',     // 辦公水壺 (Low 3)
+  GOD_MALE: 'god_male',       // 魔鬼老闆 (老闆覺醒)
+  GOD_FEMALE: 'god_female',   // 嚴厲 HR (HR覺醒)
+  SCATTER: 'scatter',         // 爆肝特休筆電 SCATTER
+  MULTIPLIER: 'multiplier'   // 加倍寶珠
 };
 
-// Relative multiplier per total bet size
 export const PAYTABLE = {
   [SYMBOLS.EYE]:        { 8: 10.0, 10: 25.0, 12: 50.0 },
   [SYMBOLS.SCEPTER]:    { 8: 2.5,  10: 10.0, 12: 25.0 },
@@ -34,8 +33,6 @@ export const PAYTABLE = {
   [SYMBOLS.GOD_FEMALE]: { 8: 5.0,  10: 15.0, 12: 30.0 },
   [SYMBOLS.SCATTER]:    { 4: 3.0,  5: 5.0,   6: 100.0 }
 };
-
-export const MULTIPLIER_VALUES = [2, 3, 4, 5, 8, 10, 12, 15, 20, 25, 50, 100, 250, 500];
 
 export class SlotEngine {
   constructor() {
@@ -83,6 +80,7 @@ export class SlotEngine {
     }
   }
 
+  // Commercial Casino Math Weights (Authentic Volatility Model)
   generateRandomSymbol(forceScatter = false) {
     const id = this.nextSymbolId++;
     if (forceScatter) {
@@ -91,34 +89,37 @@ export class SlotEngine {
 
     const rand = Math.random();
     
-    // 5% chance of Multiplier Orb
-    if (rand < 0.05) {
+    // 4% chance of Multiplier Orb
+    if (rand < 0.04) {
       const multVal = this.getRandomMultiplierValue();
       return { type: SYMBOLS.MULTIPLIER, id, multiplierVal: multVal };
     }
 
-    // 4% chance of Scatter
-    if (rand < 0.09) {
+    // 3.5% chance of Scatter
+    if (rand < 0.075) {
       return { type: SYMBOLS.SCATTER, id, multiplierVal: 0 };
     }
 
-    // 3% chance of Male God Awakening
-    if (rand < 0.12) {
+    // 2% chance of Boss Awakening
+    if (rand < 0.095) {
       return { type: SYMBOLS.GOD_MALE, id, multiplierVal: 0 };
     }
 
-    // 3% chance of Female Goddess Awakening
-    if (rand < 0.15) {
+    // 2% chance of HR Awakening
+    if (rand < 0.115) {
       return { type: SYMBOLS.GOD_FEMALE, id, multiplierVal: 0 };
     }
 
-    // Weighted regular pay symbols
+    // Weighted Regular Pay Symbols (Higher weight for low pay, lower for high pay)
     const weightedTypes = [
-      SYMBOLS.GEM_GREEN, SYMBOLS.GEM_GREEN, SYMBOLS.GEM_GREEN,
-      SYMBOLS.GEM_BLUE, SYMBOLS.GEM_BLUE,
-      SYMBOLS.GEM_PURPLE, SYMBOLS.GEM_PURPLE,
-      SYMBOLS.GEM_RED,
-      SYMBOLS.GEM_ORANGE,
+      // Low Pay (Frequent)
+      SYMBOLS.GEM_GREEN, SYMBOLS.GEM_GREEN, SYMBOLS.GEM_GREEN, SYMBOLS.GEM_GREEN, SYMBOLS.GEM_GREEN,
+      SYMBOLS.GEM_BLUE, SYMBOLS.GEM_BLUE, SYMBOLS.GEM_BLUE, SYMBOLS.GEM_BLUE,
+      SYMBOLS.GEM_PURPLE, SYMBOLS.GEM_PURPLE, SYMBOLS.GEM_PURPLE,
+      // Mid Pay
+      SYMBOLS.GEM_RED, SYMBOLS.GEM_RED,
+      SYMBOLS.GEM_ORANGE, SYMBOLS.GEM_ORANGE,
+      // High Pay (Rare)
       SYMBOLS.SWORD,
       SYMBOLS.BOW,
       SYMBOLS.SCEPTER,
@@ -130,9 +131,9 @@ export class SlotEngine {
 
   getRandomMultiplierValue() {
     const rand = Math.random();
-    if (rand < 0.50) return [2, 3, 4, 5][Math.floor(Math.random() * 4)];
-    if (rand < 0.80) return [8, 10, 12, 15][Math.floor(Math.random() * 4)];
-    if (rand < 0.95) return [20, 25, 50][Math.floor(Math.random() * 3)];
+    if (rand < 0.60) return [2, 3, 4, 5][Math.floor(Math.random() * 4)];
+    if (rand < 0.85) return [8, 10, 12, 15][Math.floor(Math.random() * 4)];
+    if (rand < 0.96) return [20, 25, 50][Math.floor(Math.random() * 3)];
     return [100, 250, 500][Math.floor(Math.random() * 3)];
   }
 
