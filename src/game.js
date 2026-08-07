@@ -24,13 +24,11 @@ class GameApp {
     this.rows = 5;
     this.cellSize = 94;
     this.cellGap = 10;
-    this.sideMargin = 95;
     this.gridWidth = this.cols * (this.cellSize + this.cellGap) + this.cellGap;
-    this.canvasWidth = this.gridWidth + this.sideMargin * 2;
     this.gridHeight = this.rows * (this.cellSize + this.cellGap) + this.cellGap;
 
     if (this.canvas) {
-      this.canvas.width = this.canvasWidth;
+      this.canvas.width = this.gridWidth;
       this.canvas.height = this.gridHeight;
     }
 
@@ -134,10 +132,10 @@ class GameApp {
   onResize() {
     if (this.canvas && this.canvas.parentElement) {
       const parentWidth = this.canvas.parentElement.clientWidth;
-      const maxW = Math.max(300, Math.min(840, parentWidth - 10));
-      const scale = maxW / this.canvasWidth;
+      const maxW = Math.max(300, Math.min(680, parentWidth - 10));
+      const scale = maxW / this.gridWidth;
 
-      this.canvas.style.width = `${Math.floor(this.canvasWidth * scale)}px`;
+      this.canvas.style.width = `${Math.floor(this.gridWidth * scale)}px`;
       this.canvas.style.height = `${Math.floor(this.gridHeight * scale)}px`;
     }
 
@@ -162,11 +160,12 @@ class GameApp {
     fx.particleBurst = false;
 
     // Pre-generate electric arc segments for each orb target
-    const mascotX = type === 'cat' ? this.sideMargin / 2 : this.canvasWidth - this.sideMargin / 2;
+    // Mascots live at left/right 48px strip inside the canvas
+    const mascotX = type === 'cat' ? 30 : this.gridWidth - 30;
     const mascotY = this.gridHeight / 2;
 
     fx.orbTargets.forEach(orb => {
-      const beam = { startX: mascotX, startY: mascotY, endX: orb.x + this.sideMargin, endY: orb.y };
+      const beam = { startX: mascotX, startY: mascotY, endX: orb.x, endY: orb.y };
       beam.segments = this._buildLightningPath(beam.startX, beam.startY, beam.endX, beam.endY, 8);
       beam.alpha = 1.0;
       beam.color = type === 'cat' ? '#fde047' : '#7dd3fc';
@@ -203,14 +202,14 @@ class GameApp {
       ctx.save();
       ctx.globalCompositeOperation = 'source-over';
       ctx.fillStyle = `rgba(255,255,255,${Math.max(0, fx.screenFlash)})`;
-      ctx.fillRect(0, 0, this.canvasWidth, this.gridHeight);
+      ctx.fillRect(0, 0, this.gridWidth, this.gridHeight);
       ctx.restore();
     }
 
     const isCat = fx.type === 'cat';
     const primaryColor  = isCat ? '#fde047' : '#7dd3fc';
     const glowColor     = isCat ? '#f59e0b' : '#0ea5e9';
-    const mascotX = isCat ? this.sideMargin / 2 : this.canvasWidth - this.sideMargin / 2;
+    const mascotX = isCat ? 30 : this.gridWidth - 30;
     const mascotY = this.gridHeight / 2;
 
     // ----- Phase 2 (0.05-0.7): Electric arc beams from mascot to each orb -----
@@ -561,26 +560,27 @@ class GameApp {
   }
 
   // =============================================
-  // LARGE SIDE MASCOT PANELS (Gates of Gatot Kaca style)
+  // SIDE MASCOT PANELS (Gates of Gatot Kaca style)
+  // Mascots are 60px overlay panels at left/right edges of grid canvas
   // =============================================
   drawGatesOfSetMascots(ctx, w, h) {
     const time = this.globalTime;
-    const SM = this.sideMargin;    // 95px side column width
+    const SM = 60;    // side mascot strip width in px
     const fx = this.awakeningFX;
 
     // ───── LEFT PANEL: 👑 董事長貓皇 ─────
-    const catCX = SM / 2;
+    const catCX = 30;
     const catCY = h / 2;
     const isCatActive = fx.active && fx.type === 'cat';
     const catScale = isCatActive ? fx.charScale : (1 + Math.sin(time * 2) * 0.04);
 
     // Panel dark gradient background
     ctx.save();
-    const catPanelGrad = ctx.createLinearGradient(0, 0, SM, 0);
-    catPanelGrad.addColorStop(0, 'rgba(10,5,20,0.95)');
+    const catPanelGrad = ctx.createLinearGradient(0, 0, SM * 1.5, 0);
+    catPanelGrad.addColorStop(0, 'rgba(10,5,20,0.92)');
     catPanelGrad.addColorStop(1, 'rgba(30,15,5,0.0)');
     ctx.fillStyle = catPanelGrad;
-    ctx.fillRect(0, 0, SM, h);
+    ctx.fillRect(0, 0, SM * 1.5, h);
     ctx.restore();
 
     // Idle ambient glow ring
@@ -646,18 +646,18 @@ class GameApp {
     }
 
     // ───── RIGHT PANEL: 👔 總經理哈士奇 ─────
-    const huskyCX = w - SM / 2;
+    const huskyCX = w - 30;
     const huskyCY = h / 2;
     const isHuskyActive = fx.active && fx.type === 'husky';
     const huskyScale = isHuskyActive ? fx.charScale : (1 + Math.cos(time * 2) * 0.04);
 
     // Panel dark gradient background
     ctx.save();
-    const huskyPanelGrad = ctx.createLinearGradient(w - SM, 0, w, 0);
+    const huskyPanelGrad = ctx.createLinearGradient(w - SM * 1.5, 0, w, 0);
     huskyPanelGrad.addColorStop(0, 'rgba(0,10,25,0.0)');
-    huskyPanelGrad.addColorStop(1, 'rgba(5,15,35,0.95)');
+    huskyPanelGrad.addColorStop(1, 'rgba(5,15,35,0.92)');
     ctx.fillStyle = huskyPanelGrad;
-    ctx.fillRect(w - SM, 0, SM, h);
+    ctx.fillRect(w - SM * 1.5, 0, SM * 1.5, h);
     ctx.restore();
 
     // Idle ambient glow ring
@@ -725,7 +725,7 @@ class GameApp {
 
   drawMainScene() {
     const ctx = this.ctx;
-    const w = this.gridWidth;
+    const w = this.gridWidth;   // canvas width = gridWidth
     const h = this.gridHeight;
 
     ctx.save();
