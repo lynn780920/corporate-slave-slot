@@ -84,6 +84,15 @@ class GameApp {
     this.onResize();
     window.addEventListener('resize', () => this.onResize());
 
+    const unlockAudio = () => {
+      soundManager.init();
+      soundManager.startBGM();
+      window.removeEventListener('click', unlockAudio);
+      window.removeEventListener('touchstart', unlockAudio);
+    };
+    window.addEventListener('click', unlockAudio);
+    window.addEventListener('touchstart', unlockAudio);
+
     this.lastTime = performance.now();
     requestAnimationFrame((t) => this.renderLoop(t));
   }

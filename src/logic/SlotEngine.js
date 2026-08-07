@@ -41,12 +41,15 @@ export class SlotEngine {
   constructor() {
     this.cols = 6;
     this.rows = 5;
-    this.balance = accountManager.currentUser ? accountManager.currentUser.balance : 2000;
+
+    // Strictly enforce starting balance $2,000
+    const userBal = accountManager.currentUser ? accountManager.currentUser.balance : 2000;
+    this.balance = userBal > 2000 ? 2000 : userBal;
 
     // Strictly Minimum bet $2, Maximum bet $30
     this.betSizes = [2, 5, 10, 15, 20, 25, 30];
     this.currentBetIdx = 2; // Default $10
-    this.currentBet = this.betSizes[this.currentBetIdx];
+    this.currentBet = 10;
 
     // Mode States
     this.isFreeSpins = false;
@@ -65,7 +68,7 @@ export class SlotEngine {
 
   syncBalanceWithAccount() {
     if (accountManager.currentUser) {
-      this.balance = accountManager.currentUser.balance;
+      this.balance = accountManager.currentUser.balance > 2000 ? 2000 : accountManager.currentUser.balance;
     }
   }
 
