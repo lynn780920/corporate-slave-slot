@@ -56,18 +56,9 @@ class GameApp {
     this.shakeOffsetY = 0;
     this.globalTime = 0;
 
-    // Gates-of-Gatot-Kaca style Awakening FX state
-    this.awakeningFX = {
-      active: false,
-      timer: 0,         // counts up in frames
-      duration: 120,    // total frames ~2sec @60fps
-      type: 'cat',      // 'cat' or 'husky'
-      screenFlash: 0,   // 0-1 white flash alpha
-      chargeBeams: [],  // electric arc lines from mascot to orbs
-      orbTargets: [],   // list of {x,y} orb positions
-      charScale: 1,     // mascot scale pulse
-      particleBurst: false
-    };
+    this.godFlashAlpha = 0;
+    this.godFlashColor = '#f59e0b';
+    this.godRaysAngle = 0;
 
     this.cellStates = Array.from({ length: 6 }, () => 
       Array.from({ length: 5 }, () => ({
@@ -132,7 +123,7 @@ class GameApp {
   onResize() {
     if (this.canvas && this.canvas.parentElement) {
       const parentWidth = this.canvas.parentElement.clientWidth;
-      const maxW = Math.max(300, Math.min(680, parentWidth - 10));
+      const maxW = Math.max(300, Math.min(640, parentWidth - 20));
       const scale = maxW / this.gridWidth;
 
       this.canvas.style.width = `${Math.floor(this.gridWidth * scale)}px`;
@@ -142,218 +133,6 @@ class GameApp {
     if (this.fsCanvas) {
       this.fsCanvas.width = window.innerWidth;
       this.fsCanvas.height = window.innerHeight;
-    }
-  }
-
-  // =============================================
-  // GATES OF GATOT KACA AWAKENING FX ENGINE
-  // =============================================
-  triggerAwakeningFX(type, orbPositions) {
-    const fx = this.awakeningFX;
-    fx.active = true;
-    fx.timer = 0;
-    fx.type = type; // 'cat' or 'husky'
-    fx.screenFlash = 1.0;
-    fx.chargeBeams = [];
-    fx.orbTargets = orbPositions.map(p => ({ ...p }));
-    fx.charScale = 1;
-    fx.particleBurst = false;
-
-    // Pre-generate electric arc segments for each orb target
-    // Mascots live at left/right 48px strip inside the canvas
-    const mascotX = type === 'cat' ? 30 : this.gridWidth - 30;
-    const mascotY = this.gridHeight / 2;
-
-    fx.orbTargets.forEach(orb => {
-      const beam = { startX: mascotX, startY: mascotY, endX: orb.x, endY: orb.y };
-      beam.segments = this._buildLightningPath(beam.startX, beam.startY, beam.endX, beam.endY, 8);
-      beam.alpha = 1.0;
-      beam.color = type === 'cat' ? '#fde047' : '#7dd3fc';
-      fx.chargeBeams.push(beam);
-    });
-  }
-
-  _buildLightningPath(x1, y1, x2, y2, splits) {
-    // Recursive midpoint displacement to generate jagged lightning segments
-    let points = [{ x: x1, y: y1 }, { x: x2, y: y2 }];
-    for (let s = 0; s < splits; s++) {
-      const next = [];
-      for (let i = 0; i < points.length - 1; i++) {
-        const mx = (points[i].x + points[i + 1].x) / 2 + (Math.random() - 0.5) * 60;
-        const my = (points[i].y + points[i + 1].y) / 2 + (Math.random() - 0.5) * 60;
-        next.push(points[i], { x: mx, y: my });
-      }
-      next.push(points[points.length - 1]);
-      points = next;
-    }
-    return points;
-  }
-
-  _drawAwakeningFX(ctx) {
-    const fx = this.awakeningFX;
-    if (!fx.active) return;
-
-    const t = fx.timer / fx.duration; // 0 → 1 normalized
-    fx.timer++;
-
-    // ----- Phase 1 (0-0.15): Screen white flash -----
-    if (fx.screenFlash > 0) {
-      fx.screenFlash -= 0.055;
-      ctx.save();
-      ctx.globalCompositeOperation = 'source-over';
-      ctx.fillStyle = `rgba(255,255,255,${Math.max(0, fx.screenFlash)})`;
-      ctx.fillRect(0, 0, this.gridWidth, this.gridHeight);
-      ctx.restore();
-    }
-
-    const isCat = fx.type === 'cat';
-    const primaryColor  = isCat ? '#fde047' : '#7dd3fc';
-    const glowColor     = isCat ? '#f59e0b' : '#0ea5e9';
-    const mascotX = isCat ? 30 : this.gridWidth - 30;
-    const mascotY = this.gridHeight / 2;
-
-    // ----- Phase 2 (0.05-0.7): Electric arc beams from mascot to each orb -----
-    if (t > 0.05 && t < 0.85) {
-      // Redraw jagged lightning segments every few frames for flicker
-      if (fx.timer % 3 === 0) {
-        fx.chargeBeams.forEach(beam => {
-          beam.segments = this._buildLightningPath(beam.startX, beam.startY, beam.endX, beam.endY, 6);
-        });
-      }
-
-      fx.chargeBeams.forEach(beam => {
-        const beamAlpha = Math.min(1, (t - 0.05) / 0.1) * (1 - Math.max(0, (t - 0.7) / 0.15));
-        if (beamAlpha <= 0) return;
-
-        // Outer thick glow
-        ctx.save();
-        ctx.globalAlpha = beamAlpha * 0.5;
-        ctx.strokeStyle = glowColor;
-        ctx.lineWidth = 14;
-        ctx.shadowColor = glowColor;
-        ctx.shadowBlur = 30;
-        ctx.lineCap = 'round';
-        ctx.lineJoin = 'round';
-        ctx.beginPath();
-        beam.segments.forEach((p, i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
-        ctx.stroke();
-        ctx.restore();
-
-        // Core bright white bolt
-        ctx.save();
-        ctx.globalAlpha = beamAlpha;
-        ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 4;
-        ctx.shadowColor = primaryColor;
-        ctx.shadowBlur = 18;
-        ctx.lineCap = 'round';
-        ctx.lineJoin = 'round';
-        ctx.beginPath();
-        beam.segments.forEach((p, i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
-        ctx.stroke();
-        ctx.restore();
-
-        // Orb impact ring
-        const impactR = 18 + Math.sin(fx.timer * 0.5) * 8;
-        ctx.save();
-        ctx.globalAlpha = beamAlpha * 0.9;
-        ctx.strokeStyle = primaryColor;
-        ctx.lineWidth = 5;
-        ctx.shadowColor = glowColor;
-        ctx.shadowBlur = 25;
-        ctx.beginPath();
-        ctx.arc(beam.endX, beam.endY, impactR, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.restore();
-      });
-    }
-
-    // ----- Phase 3 (0.45-0.85): Golden particle burst from each orb -----
-    if (t > 0.45 && !fx.particleBurst) {
-      fx.particleBurst = true;
-      fx.chargeBeams.forEach(beam => {
-        for (let i = 0; i < 55; i++) {
-          const angle = Math.random() * Math.PI * 2;
-          const speed = 4 + Math.random() * 12;
-          this.particles.push({
-            x: beam.endX, y: beam.endY,
-            vx: Math.cos(angle) * speed,
-            vy: Math.sin(angle) * speed,
-            color: Math.random() < 0.6 ? primaryColor : '#ffffff',
-            size: 3 + Math.random() * 7,
-            alpha: 1,
-            decay: 0.022 + Math.random() * 0.018
-          });
-        }
-        // Also spawn a shockwave on each orb
-        this.cellShockwaves.push({ x: beam.endX, y: beam.endY, radius: 10, maxRadius: 120, alpha: 1, color: primaryColor, width: 7 });
-        this.cellShockwaves.push({ x: beam.endX, y: beam.endY, radius: 5, maxRadius: 70, alpha: 0.7, color: '#ffffff', width: 3 });
-      });
-      // Central mascot explosion
-      for (let i = 0; i < 80; i++) {
-        const angle = Math.random() * Math.PI * 2;
-        const speed = 6 + Math.random() * 16;
-        this.particles.push({
-          x: mascotX, y: mascotY,
-          vx: Math.cos(angle) * speed,
-          vy: Math.sin(angle) * speed,
-          color: Math.random() < 0.5 ? primaryColor : glowColor,
-          size: 4 + Math.random() * 9,
-          alpha: 1,
-          decay: 0.014 + Math.random() * 0.014
-        });
-      }
-    }
-
-    // ----- Phase 4: Expanding god energy ring from mascot center -----
-    if (t > 0.05 && t < 0.7) {
-      const ringR = (t - 0.05) / 0.65 * 300;
-      const ringAlpha = 1 - t / 0.7;
-      ctx.save();
-      ctx.globalAlpha = ringAlpha * 0.8;
-      ctx.strokeStyle = primaryColor;
-      ctx.lineWidth = 8;
-      ctx.shadowColor = glowColor;
-      ctx.shadowBlur = 35;
-      ctx.beginPath();
-      ctx.arc(mascotX, mascotY, ringR, 0, Math.PI * 2);
-      ctx.stroke();
-      ctx.restore();
-
-      // Second inner ring slightly delayed
-      if (ringR > 40) {
-        ctx.save();
-        ctx.globalAlpha = ringAlpha * 0.5;
-        ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 3;
-        ctx.shadowColor = primaryColor;
-        ctx.shadowBlur = 20;
-        ctx.beginPath();
-        ctx.arc(mascotX, mascotY, ringR * 0.6, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.restore();
-      }
-    }
-
-    // ----- Mascot aura pulsing glow during FX -----
-    fx.charScale = 1 + Math.sin(fx.timer * 0.35) * 0.18;
-    const auraR = 50 + Math.sin(fx.timer * 0.5) * 18;
-    const auraAlpha = t < 0.9 ? 0.7 : 0.7 * (1 - (t - 0.9) / 0.1);
-    ctx.save();
-    ctx.globalAlpha = auraAlpha;
-    const grad = ctx.createRadialGradient(mascotX, mascotY, 0, mascotX, mascotY, auraR);
-    grad.addColorStop(0, isCat ? 'rgba(253,224,71,0.9)' : 'rgba(125,211,252,0.9)');
-    grad.addColorStop(0.5, isCat ? 'rgba(245,158,11,0.4)' : 'rgba(14,165,233,0.4)');
-    grad.addColorStop(1, 'rgba(0,0,0,0)');
-    ctx.fillStyle = grad;
-    ctx.beginPath();
-    ctx.arc(mascotX, mascotY, auraR, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-
-    // End FX
-    if (fx.timer >= fx.duration) {
-      fx.active = false;
     }
   }
 
@@ -559,173 +338,87 @@ class GameApp {
     requestAnimationFrame((t) => this.renderLoop(t));
   }
 
-  // =============================================
-  // SIDE MASCOT PANELS (Gates of Gatot Kaca style)
-  // Mascots are 60px overlay panels at left/right edges of grid canvas
-  // =============================================
   drawGatesOfSetMascots(ctx, w, h) {
     const time = this.globalTime;
-    const SM = 60;    // side mascot strip width in px
-    const fx = this.awakeningFX;
 
-    // ───── LEFT PANEL: 👑 董事長貓皇 ─────
-    const catCX = 30;
-    const catCY = h / 2;
-    const isCatActive = fx.active && fx.type === 'cat';
-    const catScale = isCatActive ? fx.charScale : (1 + Math.sin(time * 2) * 0.04);
+    // 1. Left Mascot: 👑 董事長貓皇 (Chairman Cat Emperor)
+    const catX = 40;
+    const catY = 38;
+    const catPulse = 1 + Math.sin(time * 4) * 0.08;
 
-    // Panel dark gradient background
     ctx.save();
-    const catPanelGrad = ctx.createLinearGradient(0, 0, SM * 1.5, 0);
-    catPanelGrad.addColorStop(0, 'rgba(10,5,20,0.92)');
-    catPanelGrad.addColorStop(1, 'rgba(30,15,5,0.0)');
-    ctx.fillStyle = catPanelGrad;
-    ctx.fillRect(0, 0, SM * 1.5, h);
-    ctx.restore();
+    ctx.translate(catX, catY);
 
-    // Idle ambient glow ring
+    // Glowing Aura Ring
     ctx.save();
-    ctx.translate(catCX, catCY);
-    const catAuraSize = (isCatActive ? 52 : 42) + Math.sin(time * 3) * 6;
-    const catGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, catAuraSize);
-    catGrad.addColorStop(0, isCatActive ? 'rgba(253,224,71,0.85)' : 'rgba(245,158,11,0.35)');
-    catGrad.addColorStop(0.5, isCatActive ? 'rgba(245,158,11,0.4)' : 'rgba(245,158,11,0.12)');
-    catGrad.addColorStop(1, 'rgba(0,0,0,0)');
-    ctx.fillStyle = catGrad;
-    ctx.beginPath();
-    ctx.arc(0, 0, catAuraSize, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Character image
-    const catImg = this.loadedImages['chairman_cat'];
-    const catImgSize = Math.floor((SM - 14) * catScale);
-    if (catImg) {
-      ctx.shadowColor = isCatActive ? '#fde047' : '#f59e0b';
-      ctx.shadowBlur = isCatActive ? 40 : 18;
-      ctx.drawImage(catImg, -catImgSize / 2, -catImgSize / 2, catImgSize, catImgSize);
-    }
-
-    // Sparkling border when active
-    if (isCatActive) {
-      ctx.strokeStyle = '#fde047';
-      ctx.lineWidth = 4;
-      ctx.shadowColor = '#f59e0b';
-      ctx.shadowBlur = 25;
-      ctx.strokeRect(-catImgSize / 2 - 3, -catImgSize / 2 - 3, catImgSize + 6, catImgSize + 6);
-    }
-    ctx.restore();
-
-    // Name label at bottom of panel
-    ctx.save();
-    ctx.font = '900 10px Outfit, sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillStyle = isCatActive ? '#fde047' : 'rgba(253,224,71,0.7)';
+    ctx.scale(catPulse, catPulse);
+    ctx.fillStyle = 'rgba(245, 158, 11, 0.28)';
     ctx.shadowColor = '#f59e0b';
-    ctx.shadowBlur = isCatActive ? 14 : 6;
-    ctx.fillText('👑貓皇', catCX, h - 10);
-    ctx.restore();
-
-    // Skill label when active
-    if (isCatActive && fx.timer < 60) {
-      const skillAlpha = Math.min(1, 1 - fx.timer / 60);
-      ctx.save();
-      ctx.globalAlpha = skillAlpha;
-      ctx.font = '900 12px Outfit, sans-serif';
-      ctx.textAlign = 'center';
-      ctx.strokeStyle = '#000';
-      ctx.lineWidth = 5;
-      ctx.fillStyle = '#fde047';
-      ctx.shadowColor = '#f59e0b';
-      ctx.shadowBlur = 20;
-      ctx.strokeText('力量覺醒!', catCX, catCY - catImgSize / 2 - 14);
-      ctx.fillText('力量覺醒!', catCX, catCY - catImgSize / 2 - 14);
-      ctx.strokeText('倍數×2!!', catCX, catCY - catImgSize / 2 - 30);
-      ctx.fillStyle = '#fff';
-      ctx.fillText('倍數×2!!', catCX, catCY - catImgSize / 2 - 30);
-      ctx.restore();
-    }
-
-    // ───── RIGHT PANEL: 👔 總經理哈士奇 ─────
-    const huskyCX = w - 30;
-    const huskyCY = h / 2;
-    const isHuskyActive = fx.active && fx.type === 'husky';
-    const huskyScale = isHuskyActive ? fx.charScale : (1 + Math.cos(time * 2) * 0.04);
-
-    // Panel dark gradient background
-    ctx.save();
-    const huskyPanelGrad = ctx.createLinearGradient(w - SM * 1.5, 0, w, 0);
-    huskyPanelGrad.addColorStop(0, 'rgba(0,10,25,0.0)');
-    huskyPanelGrad.addColorStop(1, 'rgba(5,15,35,0.92)');
-    ctx.fillStyle = huskyPanelGrad;
-    ctx.fillRect(w - SM * 1.5, 0, SM * 1.5, h);
-    ctx.restore();
-
-    // Idle ambient glow ring
-    ctx.save();
-    ctx.translate(huskyCX, huskyCY);
-    const huskyAuraSize = (isHuskyActive ? 52 : 42) + Math.cos(time * 3) * 6;
-    const huskyGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, huskyAuraSize);
-    huskyGrad.addColorStop(0, isHuskyActive ? 'rgba(125,211,252,0.85)' : 'rgba(56,189,248,0.35)');
-    huskyGrad.addColorStop(0.5, isHuskyActive ? 'rgba(14,165,233,0.4)' : 'rgba(56,189,248,0.12)');
-    huskyGrad.addColorStop(1, 'rgba(0,0,0,0)');
-    ctx.fillStyle = huskyGrad;
+    ctx.shadowBlur = 22;
     ctx.beginPath();
-    ctx.arc(0, 0, huskyAuraSize, 0, Math.PI * 2);
+    ctx.arc(0, 0, 30, 0, Math.PI * 2);
     ctx.fill();
 
-    // Character image
-    const huskyImg = this.loadedImages['gm_husky'];
-    const huskyImgSize = Math.floor((SM - 14) * huskyScale);
-    if (huskyImg) {
-      ctx.shadowColor = isHuskyActive ? '#7dd3fc' : '#38bdf8';
-      ctx.shadowBlur = isHuskyActive ? 40 : 18;
-      ctx.drawImage(huskyImg, -huskyImgSize / 2, -huskyImgSize / 2, huskyImgSize, huskyImgSize);
+    const catImg = this.loadedImages['chairman_cat'];
+    if (catImg) {
+      ctx.drawImage(catImg, -26, -26, 52, 52);
     }
-
-    // Sparkling border when active
-    if (isHuskyActive) {
-      ctx.strokeStyle = '#7dd3fc';
-      ctx.lineWidth = 4;
-      ctx.shadowColor = '#0ea5e9';
-      ctx.shadowBlur = 25;
-      ctx.strokeRect(-huskyImgSize / 2 - 3, -huskyImgSize / 2 - 3, huskyImgSize + 6, huskyImgSize + 6);
-    }
+    ctx.strokeStyle = '#fde047';
+    ctx.lineWidth = 2.5;
+    ctx.strokeRect(-26, -26, 52, 52);
     ctx.restore();
 
-    // Name label at bottom of panel
-    ctx.save();
-    ctx.font = '900 10px Outfit, sans-serif';
+    // Badge Title Label
+    ctx.font = '900 11px Outfit, Cinzel, sans-serif';
+    ctx.fillStyle = '#fde047';
     ctx.textAlign = 'center';
-    ctx.fillStyle = isHuskyActive ? '#7dd3fc' : 'rgba(125,211,252,0.7)';
-    ctx.shadowColor = '#0ea5e9';
-    ctx.shadowBlur = isHuskyActive ? 14 : 6;
-    ctx.fillText('👔哈士奇', huskyCX, h - 10);
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = 4;
+    ctx.strokeText('👑貓皇', 0, 36);
+    ctx.fillText('👑貓皇', 0, 36);
     ctx.restore();
 
-    // Skill label when active
-    if (isHuskyActive && fx.timer < 60) {
-      const skillAlpha = Math.min(1, 1 - fx.timer / 60);
-      ctx.save();
-      ctx.globalAlpha = skillAlpha;
-      ctx.font = '900 12px Outfit, sans-serif';
-      ctx.textAlign = 'center';
-      ctx.strokeStyle = '#000';
-      ctx.lineWidth = 5;
-      ctx.fillStyle = '#7dd3fc';
-      ctx.shadowColor = '#0ea5e9';
-      ctx.shadowBlur = 20;
-      ctx.strokeText('鎖定覺醒!', huskyCX, huskyCY - huskyImgSize / 2 - 14);
-      ctx.fillText('鎖定覺醒!', huskyCX, huskyCY - huskyImgSize / 2 - 14);
-      ctx.strokeText('3局鎖倍!!', huskyCX, huskyCY - huskyImgSize / 2 - 30);
-      ctx.fillStyle = '#fff';
-      ctx.fillText('3局鎖倍!!', huskyCX, huskyCY - huskyImgSize / 2 - 30);
-      ctx.restore();
+    // 2. Right Mascot: 👔 總經理哈士奇 (GM Husky)
+    const huskyX = w - 40;
+    const huskyY = 38;
+    const huskyPulse = 1 + Math.cos(time * 4) * 0.08;
+
+    ctx.save();
+    ctx.translate(huskyX, huskyY);
+
+    // Glowing Aura Ring
+    ctx.save();
+    ctx.scale(huskyPulse, huskyPulse);
+    ctx.fillStyle = 'rgba(56, 189, 248, 0.28)';
+    ctx.shadowColor = '#38bdf8';
+    ctx.shadowBlur = 22;
+    ctx.beginPath();
+    ctx.arc(0, 0, 30, 0, Math.PI * 2);
+    ctx.fill();
+
+    const huskyImg = this.loadedImages['gm_husky'];
+    if (huskyImg) {
+      ctx.drawImage(huskyImg, -26, -26, 52, 52);
     }
+    ctx.strokeStyle = '#38bdf8';
+    ctx.lineWidth = 2.5;
+    ctx.strokeRect(-26, -26, 52, 52);
+    ctx.restore();
+
+    // Badge Title Label
+    ctx.font = '900 11px Outfit, Cinzel, sans-serif';
+    ctx.fillStyle = '#38bdf8';
+    ctx.textAlign = 'center';
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = 4;
+    ctx.strokeText('👔哈士奇', 0, 36);
+    ctx.fillText('👔哈士奇', 0, 36);
+    ctx.restore();
   }
 
   drawMainScene() {
     const ctx = this.ctx;
-    const w = this.gridWidth;   // canvas width = gridWidth
+    const w = this.gridWidth;
     const h = this.gridHeight;
 
     ctx.save();
@@ -939,8 +632,34 @@ class GameApp {
       ctx.restore();
     }
 
-    // ─── Gates of Gatot Kaca Awakening FX ───
-    this._drawAwakeningFX(ctx);
+    // Gates of Set God Awakening Flash Rays Overlay
+    if (this.godFlashAlpha > 0) {
+      this.godFlashAlpha -= 0.02;
+      this.godRaysAngle += 0.03;
+
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, this.godFlashAlpha);
+      ctx.globalCompositeOperation = 'screen';
+      
+      const cx = this.gridWidth / 2;
+      const cy = this.gridHeight / 2;
+
+      ctx.translate(cx, cy);
+      ctx.rotate(this.godRaysAngle);
+      ctx.fillStyle = this.godFlashColor;
+      
+      const numRays = 16;
+      const rayLen = Math.max(this.gridWidth, this.gridHeight) * 1.5;
+      for (let i = 0; i < numRays; i++) {
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.arc(0, 0, rayLen, (i * 2 * Math.PI) / numRays, ((i * 2 + 1) * Math.PI) / numRays);
+        ctx.lineTo(0, 0);
+        ctx.fill();
+      }
+
+      ctx.restore();
+    }
 
     // Floating Score Numbers
     for (let i = this.floatingTexts.length - 1; i >= 0; i--) {
@@ -1303,49 +1022,57 @@ class GameApp {
       const winPositions = [];
       evalResult.winningGroups.forEach(group => {
         if (group.type === SYMBOLS.GOD_MALE) {
+          const firstPos = group.positions[0];
+          const x = firstPos.col * (this.cellSize + this.cellGap) + this.cellGap + this.cellSize / 2;
+          const y = firstPos.row * (this.cellSize + this.cellGap) + this.cellGap + this.cellSize / 2;
+          
           if (this.engine.lockedMultiplierVal > 0) {
             this.engine.lockedMultiplierVal *= 2;
           }
 
-          const orbTargets = [];
+          // Double multiplier values on all grid orbs & shoot lightning laser beams!
           for (let c = 0; c < this.cols; c++) {
             for (let r = 0; r < this.rows; r++) {
               if (this.engine.grid[c][r] && this.engine.grid[c][r].type === SYMBOLS.MULTIPLIER) {
                 this.engine.grid[c][r].multiplierVal *= 2;
                 const orbX = c * (this.cellSize + this.cellGap) + this.cellGap + this.cellSize / 2;
                 const orbY = r * (this.cellSize + this.cellGap) + this.cellGap + this.cellSize / 2;
-                orbTargets.push({ x: orbX, y: orbY });
+                this.spawnMultiplierLaserBeam(x, y, orbX, orbY, this.engine.grid[c][r].multiplierVal);
+                this.spawnShockwave(orbX, orbY);
               }
             }
           }
 
-          // 🎆 Gates of Gatot Kaca style awakening!
-          this.triggerAwakeningFX('cat', orbTargets);
-          this.triggerShake(25, 40);
+          this.godFlashAlpha = 0.85;
+          this.godFlashColor = 'rgba(253, 224, 71, 0.4)';
+          this.triggerShake(22, 30);
+          this.spawnFloatingText(x, y - 40, `👑 力量覺醒！倍數 2 倍翻倍！`);
           soundManager.playBigWin();
-          await new Promise(res => setTimeout(res, 2200));
-
         } else if (group.type === SYMBOLS.GOD_FEMALE) {
-          this.engine.lockedMultiplierSpins = 4;
+          const firstPos = group.positions[0];
+          const x = firstPos.col * (this.cellSize + this.cellGap) + this.cellGap + this.cellSize / 2;
+          const y = firstPos.row * (this.cellSize + this.cellGap) + this.cellGap + this.cellSize / 2;
+
+          this.engine.lockedMultiplierSpins = 4; // Active for 3 subsequent spins
           const baseLock = Math.max(this.engine.lockedMultiplierVal || 0, spinMultiplierSum || 0, 15);
           this.engine.lockedMultiplierVal = baseLock;
 
-          const orbTargets = [];
           for (let c = 0; c < this.cols; c++) {
             for (let r = 0; r < this.rows; r++) {
               if (this.engine.grid[c][r] && this.engine.grid[c][r].type === SYMBOLS.MULTIPLIER) {
                 const orbX = c * (this.cellSize + this.cellGap) + this.cellGap + this.cellSize / 2;
                 const orbY = r * (this.cellSize + this.cellGap) + this.cellGap + this.cellSize / 2;
-                orbTargets.push({ x: orbX, y: orbY });
+                this.spawnMultiplierLaserBeam(x, y, orbX, orbY, baseLock);
+                this.spawnShockwave(orbX, orbY);
               }
             }
           }
 
-          // 🎆 Gates of Gatot Kaca style awakening!
-          this.triggerAwakeningFX('husky', orbTargets);
-          this.triggerShake(25, 40);
+          this.godFlashAlpha = 0.85;
+          this.godFlashColor = 'rgba(56, 189, 248, 0.4)';
+          this.triggerShake(22, 30);
+          this.spawnFloatingText(x, y - 40, `👔 鎖定覺醒！鎖定 ${baseLock}x 保留 3 局！`);
           soundManager.playBigWin();
-          await new Promise(res => setTimeout(res, 2200));
         }
 
         group.positions.forEach(pos => {
@@ -1369,19 +1096,19 @@ class GameApp {
     const multiplierOrbs = this.engine.getMultiplierOrbs();
     if (hasAnyWinThisSpin && multiplierOrbs.length > 0) {
       soundManager.playOrbSwoop();
-      const orbPositions = [];
       multiplierOrbs.forEach((orb, idx) => {
         spinMultiplierSum += orb.val;
         const x = orb.col * (this.cellSize + this.cellGap) + this.cellGap + this.cellSize / 2;
         const y = orb.row * (this.cellSize + this.cellGap) + this.cellGap + this.cellSize / 2;
-        orbPositions.push({ x, y });
+        
+        // Gates of Set Animation: Side God mascot shoots electric beam directly to orb!
+        const mascotX = idx % 2 === 0 ? 40 : (this.gridWidth - 40);
+        const mascotY = 38;
+        this.spawnMultiplierLaserBeam(mascotX, mascotY, x, y, orb.val);
+        this.spawnShockwave(x, y);
       });
 
-      // Alternate cat/husky to collect orbs - mimics Gates of Gatot Kaca collect animation
-      this.triggerAwakeningFX(Math.random() < 0.5 ? 'cat' : 'husky', orbPositions);
-      this.triggerShake(12, 20);
-
-      await new Promise(res => setTimeout(res, 700));
+      await new Promise(res => setTimeout(res, 550));
 
       if (this.engine.isFreeSpins) {
         this.engine.globalMultiplierPool += spinMultiplierSum;
