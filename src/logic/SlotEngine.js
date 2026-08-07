@@ -21,6 +21,7 @@ export const SYMBOLS = {
   MULTIPLIER: 'multiplier'   // 加倍寶珠
 };
 
+// Commercial Paytable (Multipliers of Bet Size)
 export const PAYTABLE = {
   [SYMBOLS.EYE]:        { 8: 10.0, 10: 25.0, 12: 50.0 },
   [SYMBOLS.SCEPTER]:    { 8: 2.5,  10: 10.0, 12: 25.0 },
@@ -100,44 +101,44 @@ export class SlotEngine {
 
     const rand = Math.random();
     
-    if (rand < 0.04) {
+    // Multiplier Orbs (3% chance)
+    if (rand < 0.03) {
       const multVal = this.getRandomMultiplierValue();
       return { type: SYMBOLS.MULTIPLIER, id, multiplierVal: multVal };
     }
 
-    if (rand < 0.075) {
+    // SCATTER (3.2% chance)
+    if (rand < 0.062) {
       return { type: SYMBOLS.SCATTER, id, multiplierVal: 0 };
     }
 
-    if (rand < 0.095) {
-      return { type: SYMBOLS.GOD_MALE, id, multiplierVal: 0 };
-    }
+    // High God Symbols (2% chance each)
+    if (rand < 0.082) return { type: SYMBOLS.GOD_MALE, id, multiplierVal: 0 };
+    if (rand < 0.102) return { type: SYMBOLS.GOD_FEMALE, id, multiplierVal: 0 };
 
-    if (rand < 0.115) {
-      return { type: SYMBOLS.GOD_FEMALE, id, multiplierVal: 0 };
-    }
-
-    const weightedTypes = [
-      SYMBOLS.GEM_GREEN, SYMBOLS.GEM_GREEN, SYMBOLS.GEM_GREEN, SYMBOLS.GEM_GREEN, SYMBOLS.GEM_GREEN,
-      SYMBOLS.GEM_BLUE, SYMBOLS.GEM_BLUE, SYMBOLS.GEM_BLUE, SYMBOLS.GEM_BLUE,
-      SYMBOLS.GEM_PURPLE, SYMBOLS.GEM_PURPLE, SYMBOLS.GEM_PURPLE,
-      SYMBOLS.GEM_RED, SYMBOLS.GEM_RED,
-      SYMBOLS.GEM_ORANGE, SYMBOLS.GEM_ORANGE,
+    // Balanced 9 Standard Symbols Distribution for ~22% Natural Hit Rate
+    const allSymbols = [
+      SYMBOLS.GEM_GREEN,
+      SYMBOLS.GEM_BLUE,
+      SYMBOLS.GEM_PURPLE,
+      SYMBOLS.GEM_RED,
+      SYMBOLS.GEM_ORANGE,
       SYMBOLS.SWORD,
       SYMBOLS.BOW,
       SYMBOLS.SCEPTER,
       SYMBOLS.EYE
     ];
-    const chosenType = weightedTypes[Math.floor(Math.random() * weightedTypes.length)];
+
+    const chosenType = allSymbols[Math.floor(Math.random() * allSymbols.length)];
     return { type: chosenType, id, multiplierVal: 0 };
   }
 
   getRandomMultiplierValue() {
     const rand = Math.random();
-    if (rand < 0.60) return [2, 3, 4, 5][Math.floor(Math.random() * 4)];
-    if (rand < 0.85) return [8, 10, 12, 15][Math.floor(Math.random() * 4)];
-    if (rand < 0.96) return [20, 25, 50][Math.floor(Math.random() * 3)];
-    return [100, 250, 500][Math.floor(Math.random() * 3)];
+    if (rand < 0.75) return [2, 3, 4, 5][Math.floor(Math.random() * 4)];
+    if (rand < 0.95) return [8, 10, 12, 15][Math.floor(Math.random() * 4)];
+    if (rand < 0.99) return [20, 25, 50][Math.floor(Math.random() * 3)];
+    return [100, 250, 500][Math.floor(Math.random() * 3)]; // 1% rare 100x+
   }
 
   generateSpinGrid(isBuyFeature = false) {
@@ -185,7 +186,6 @@ export class SlotEngine {
     }
 
     const winningGroups = [];
-    let totalSpinPayoutMultiplier = 0;
 
     for (const [type, count] of Object.entries(symbolCounts)) {
       if (type === SYMBOLS.SCATTER) continue;
@@ -200,7 +200,6 @@ export class SlotEngine {
         }
 
         const payout = payFactor * this.currentBet;
-        totalSpinPayoutMultiplier += payFactor;
 
         winningGroups.push({
           type,
