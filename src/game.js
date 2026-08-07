@@ -296,7 +296,8 @@ class GameApp {
           elAmount.textContent = `$${this.bigWinCurrent.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
         }
         if (elMult) {
-          elMult.textContent = `${(this.bigWinCurrent / currentBet).toFixed(1)}X`;
+          const m = this.bigWinCurrent / currentBet;
+          elMult.textContent = `${(m % 1 === 0 ? m.toFixed(0) : m.toFixed(2))}X`;
         }
 
         if (progress < 1) {
@@ -307,7 +308,8 @@ class GameApp {
             elAmount.textContent = `$${this.bigWinTarget.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
           }
           if (elMult) {
-            elMult.textContent = `${(this.bigWinTarget / currentBet).toFixed(1)}X`;
+            const tm = this.bigWinTarget / currentBet;
+            elMult.textContent = `${(tm % 1 === 0 ? tm.toFixed(0) : tm.toFixed(2))}X`;
           }
           resolve();
         }

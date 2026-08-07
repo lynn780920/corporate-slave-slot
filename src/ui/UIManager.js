@@ -317,11 +317,12 @@ export class UIManager {
     }
 
     const bet = Math.max(1, this.engine.getBet());
-    const multiplier = (winAmount / bet).toFixed(1);
+    const rawMult = winAmount / bet;
+    const multiplierStr = rawMult % 1 === 0 ? rawMult.toFixed(0) : rawMult.toFixed(2);
 
     if (this.elFsBigWinTitle) this.elFsBigWinTitle.textContent = title;
     if (this.elFsBigWinAmount) this.elFsBigWinAmount.textContent = `$${winAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
-    if (this.elFsBigWinMultiplier) this.elFsBigWinMultiplier.textContent = `${multiplier}X`;
+    if (this.elFsBigWinMultiplier) this.elFsBigWinMultiplier.textContent = `${multiplierStr}X`;
     if (this.elFsBigWinOverlay) this.elFsBigWinOverlay.classList.remove('hidden');
   }
 
